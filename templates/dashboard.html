@@ -1,0 +1,102 @@
+{% extends "layout.html" %}
+{% block title %}Dashboard - MC Host Guide CMS{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Recommendation data</p>
+    <h1>Host dashboard</h1>
+  </div>
+  <a class="button primary" href="{{ url_for('new_host') }}">Add host</a>
+</section>
+
+<section class="metric-strip" aria-label="Host stats">
+  <div><strong>{{ stats.total }}</strong><span>Total hosts</span></div>
+  <div><strong>{{ stats.shown }}</strong><span>Shown</span></div>
+  <div><strong>{{ stats.top_pick }}</strong><span>Top picks</span></div>
+  <div><strong>{{ stats.recommended }}</strong><span>Recommended</span></div>
+  <div><strong>{{ stats.needs_review }}</strong><span>Needs review</span></div>
+</section>
+
+<form class="filter-bar" method="get">
+  <label>
+    <span>Search</span>
+    <input name="q" value="{{ filters.q }}" placeholder="Name, CPU, region">
+  </label>
+  <label>
+    <span>Tier</span>
+    <select name="tier">
+      <option value="">All tiers</option>
+      {% for tier in tier_options %}
+        <option value="{{ tier }}" {% if filters.tier == tier %}selected{% endif %}>{{ tier_labels[tier] }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>
+    <span>Category</span>
+    <select name="category">
+      <option value="">All categories</option>
+      {% for category in category_options %}
+        <option value="{{ category }}" {% if filters.category == category %}selected{% endif %}>{{ category_labels[category] }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>
+    <span>Status</span>
+    <select name="status">
+      <option value="">All statuses</option>
+      {% for status in status_options %}
+        <option value="{{ status }}" {% if filters.status == status %}selected{% endif %}>{{ status_labels[status] }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button class="button" type="submit">Filter</button>
+</form>
+
+<section class="table-shell">
+  <table class="host-table">
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Host</th>
+        <th>Tier</th>
+        <th>CPU / GHz</th>
+        <th>Categories</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for host in hosts %}
+        <tr>
+          <td>{{ host.rank }}</td>
+          <td>
+            <strong>{{ host.name }}</strong>
+            <small>{{ host.summary or "No summary yet" }}</small>
+          </td>
+          <td><span class="badge tier-{{ host.recommendation_tier }}">{{ tier_labels[host.recommendation_tier] }}</span></td>
+          <td>{{ host.cpu_model or "Unknown CPU" }}{% if host.advertised_clock_ghz %} / {{ host.advertised_clock_ghz }} GHz{% endif %}</td>
+          <td>
+            {% for category in host.category_picks %}
+              <span class="pill">{{ category_labels[category] }}</span>
+            {% else %}
+              <span class="muted">None</span>
+            {% endfor %}
+          </td>
+          <td>{{ status_labels[host.status] }}</td>
+          <td class="row-actions">
+            <a href="{{ url_for('edit_host', host_id=host.id) }}">Edit</a>
+            <a href="{{ url_for('delete_host', host_id=host.id) }}">Delete</a>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="7" class="empty-state">
+            <strong>No hosts match this view.</strong>
+            <span>Add the first host or clear the filters.</span>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

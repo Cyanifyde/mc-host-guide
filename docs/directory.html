@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minecraft Host Directory</title>
+  <meta name="description" content="Manual Minecraft host recommendations with CPU, GHz, pricing, trust, and feature notes.">
+  <link rel="stylesheet" href="static/styles.css">
+  <script src="static/site.js" defer></script>
+</head>
+<body class="public-shell">
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">MC</span>
+      <span>
+        <strong>Minecraft Host Guide</strong>
+        <small>CPU-aware recommendations</small>
+      </span>
+    </a>
+    <nav class="nav-actions" aria-label="Site">
+      <a class="" href="index.html">Picks</a>
+      <a class="active" href="directory.html">Directory</a>
+      <a class="" href="methodology.html">Methodology</a>
+    </nav>
+  </header>
+  <main class="page">
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Directory</p>
+    <h1>All published hosts</h1>
+  </div>
+</section>
+
+<section class="filter-bar public-filters" data-directory-filters>
+  <label>
+    <span>Search</span>
+    <input data-filter-search placeholder="Name, CPU, region">
+  </label>
+  <label>
+    <span>Tier</span>
+    <select data-filter-tier>
+      <option value="">All tiers</option>
+        <option value="top_pick">Top pick</option>
+        <option value="recommended">Recommended</option>
+        <option value="situational">Situational</option>
+        <option value="avoid">Avoid</option>
+        <option value="unreviewed">Unreviewed</option>
+    </select>
+  </label>
+  <label>
+    <span>Category</span>
+    <select data-filter-category>
+      <option value="">All categories</option>
+        <option value="overall">Overall</option>
+        <option value="budget">Budget</option>
+        <option value="performance">Performance</option>
+        <option value="modded">Modded</option>
+        <option value="free">Free</option>
+        <option value="small_servers">Small servers</option>
+        <option value="large_servers">Large servers</option>
+        <option value="regional">Regional</option>
+    </select>
+  </label>
+</section>
+
+<section class="host-grid" data-directory-list>
+    <div class="empty-public">
+      <strong>No hosts published.</strong>
+      <span>Add hosts in the local CMS and rebuild the site.</span>
+    </div>
+</section>
+  </main>
+</body>
+</html>

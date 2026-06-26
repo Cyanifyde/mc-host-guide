@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block title %}Build - MC Host Guide CMS{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Static output</p>
+    <h1>Build complete</h1>
+  </div>
+  <a class="button primary" href="{{ url_for('preview') }}">Open preview</a>
+</section>
+
+<section class="metric-strip">
+  <div><strong>{{ result.host_count }}</strong><span>Published hosts</span></div>
+  <div><strong>{{ result.page_count }}</strong><span>Generated pages</span></div>
+  <div><strong>docs/</strong><span>Pages source</span></div>
+</section>
+{% endblock %}

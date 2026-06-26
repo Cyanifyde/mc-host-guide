@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Minecraft Host Guide{% endblock %}</title>
+  <meta name="description" content="Manual Minecraft host recommendations with CPU, GHz, pricing, trust, and feature notes.">
+  <link rel="stylesheet" href="{{ root_prefix }}static/styles.css">
+  <script src="{{ root_prefix }}static/site.js" defer></script>
+</head>
+<body class="public-shell">
+  <header class="site-header">
+    <a class="brand" href="{{ root_prefix }}index.html">
+      <span class="brand-mark">MC</span>
+      <span>
+        <strong>Minecraft Host Guide</strong>
+        <small>CPU-aware recommendations</small>
+      </span>
+    </a>
+    <nav class="nav-actions" aria-label="Site">
+      <a class="{% if active_page == 'home' %}active{% endif %}" href="{{ root_prefix }}index.html">Picks</a>
+      <a class="{% if active_page == 'directory' %}active{% endif %}" href="{{ root_prefix }}directory.html">Directory</a>
+      <a class="{% if active_page == 'methodology' %}active{% endif %}" href="{{ root_prefix }}methodology.html">Methodology</a>
+    </nav>
+  </header>
+  <main class="page">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

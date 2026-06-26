@@ -1,0 +1,175 @@
+{% extends "layout.html" %}
+{% block title %}{% if mode == "new" %}New host{% else %}Edit {{ host.name }}{% endif %} - MC Host Guide CMS{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">{% if mode == "new" %}Create{% else %}Edit{% endif %}</p>
+    <h1>{% if mode == "new" %}New host{% else %}{{ host.name }}{% endif %}</h1>
+  </div>
+  {% if mode == "edit" %}
+    <a class="button danger" href="{{ url_for('delete_host', host_id=host.id) }}">Delete</a>
+  {% endif %}
+</section>
+
+<form class="edit-form" method="post">
+  <section class="form-section">
+    <h2>Identity</h2>
+    <div class="form-grid">
+      <label>
+        <span>Name</span>
+        <input name="name" value="{{ host.name }}" required>
+      </label>
+      <label>
+        <span>Website URL</span>
+        <input name="website_url" value="{{ host.website_url }}" type="url">
+      </label>
+      <label>
+        <span>Plan URL</span>
+        <input name="plan_url" value="{{ host.plan_url }}" type="url">
+      </label>
+      <label>
+        <span>Logo URL</span>
+        <input name="logo_url" value="{{ host.logo_url }}" type="url">
+      </label>
+      <label class="span-2">
+        <span>Summary</span>
+        <textarea name="summary" rows="3">{{ host.summary }}</textarea>
+      </label>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <h2>Ranking</h2>
+    <div class="form-grid">
+      <label>
+        <span>Tier</span>
+        <select name="recommendation_tier">
+          {% for tier in tier_options %}
+            <option value="{{ tier }}" {% if host.recommendation_tier == tier %}selected{% endif %}>{{ tier_labels[tier] }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Rank</span>
+        <input name="rank" value="{{ host.rank }}" type="number" min="1">
+      </label>
+      <label>
+        <span>Status</span>
+        <select name="status">
+          {% for status in status_options %}
+            <option value="{{ status }}" {% if host.status == status %}selected{% endif %}>{{ status_labels[status] }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <fieldset class="checkbox-grid span-2">
+        <legend>Category picks</legend>
+        {% for category in category_options %}
+          <label>
+            <input type="checkbox" name="category_picks" value="{{ category }}" {% if category in host.category_picks %}checked{% endif %}>
+            <span>{{ category_labels[category] }}</span>
+          </label>
+        {% endfor %}
+      </fieldset>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <h2>CPU and specs</h2>
+    <div class="form-grid">
+      <label>
+        <span>CPU model</span>
+        <input name="cpu_model" value="{{ host.cpu_model }}" placeholder="Ryzen 9 7950X">
+      </label>
+      <label>
+        <span>CPU vendor</span>
+        <input name="cpu_vendor" value="{{ host.cpu_vendor }}" placeholder="AMD / Intel">
+      </label>
+      <label>
+        <span>Advertised GHz</span>
+        <input name="advertised_clock_ghz" value="{{ host.advertised_clock_ghz }}" inputmode="decimal">
+      </label>
+      <label>
+        <span>Boost GHz</span>
+        <input name="boost_clock_ghz" value="{{ host.boost_clock_ghz }}" inputmode="decimal">
+      </label>
+      <label>
+        <span>Storage type</span>
+        <input name="storage_type" value="{{ host.storage_type }}" placeholder="NVMe SSD">
+      </label>
+      <label>
+        <span>Locations</span>
+        <textarea name="locations" rows="3">{{ host.locations|join('\n') }}</textarea>
+      </label>
+      <label class="span-2">
+        <span>CPU notes</span>
+        <textarea name="cpu_notes" rows="3">{{ host.cpu_notes }}</textarea>
+      </label>
+      <label class="span-2">
+        <span>RAM notes</span>
+        <textarea name="ram_notes" rows="3">{{ host.ram_notes }}</textarea>
+      </label>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <h2>Hosting features</h2>
+    <div class="form-grid">
+      <label>
+        <span>Panel</span>
+        <input name="panel" value="{{ host.panel }}" placeholder="Pterodactyl, Multicraft, custom">
+      </label>
+      <label>
+        <span>DDoS protection</span>
+        <input name="ddos_protection" value="{{ host.ddos_protection }}">
+      </label>
+      <label>
+        <span>Modpack support</span>
+        <input name="modpack_support" value="{{ host.modpack_support }}">
+      </label>
+      <label>
+        <span>Server types</span>
+        <textarea name="server_types" rows="3">{{ host.server_types|join('\n') }}</textarea>
+      </label>
+      <label class="span-2">
+        <span>Price notes</span>
+        <textarea name="price_notes" rows="3">{{ host.price_notes }}</textarea>
+      </label>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <h2>Editorial notes</h2>
+    <div class="form-grid">
+      <label>
+        <span>Pros</span>
+        <textarea name="pros" rows="5">{{ host.pros|join('\n') }}</textarea>
+      </label>
+      <label>
+        <span>Cons</span>
+        <textarea name="cons" rows="5">{{ host.cons|join('\n') }}</textarea>
+      </label>
+      <label class="span-2">
+        <span>Caveats</span>
+        <textarea name="caveats" rows="3">{{ host.caveats }}</textarea>
+      </label>
+      <label class="span-2">
+        <span>Trust notes</span>
+        <textarea name="trust_notes" rows="3">{{ host.trust_notes }}</textarea>
+      </label>
+      <label>
+        <span>Last verified</span>
+        <input name="last_verified" value="{{ host.last_verified }}" type="date">
+      </label>
+      <label>
+        <span>Source URLs</span>
+        <textarea name="source_urls" rows="4">{{ host.source_urls|join('\n') }}</textarea>
+      </label>
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <button class="button primary" type="submit">Save host</button>
+    <a class="button" href="{{ url_for('dashboard') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

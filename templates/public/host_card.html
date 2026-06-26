@@ -1,0 +1,25 @@
+<article class="host-card" data-search="{{ host.name }} {{ host.summary }} {{ host.cpu_model }} {{ host.locations|join(' ') }}" data-tier="{{ host.recommendation_tier }}" data-status="{{ host.status }}" data-categories="{{ host.category_picks|join(' ') }}">
+  <div class="host-card-top">
+    {% if host.logo_url %}
+      <img class="host-logo" src="{{ host.logo_url }}" alt="{{ host.name }} logo">
+    {% else %}
+      <span class="host-logo fallback">{{ host.name[:1] }}</span>
+    {% endif %}
+    <div>
+      <h3><a href="{{ root_prefix }}hosts/{{ host.id }}.html">{{ host.name }}</a></h3>
+      <span class="badge tier-{{ host.recommendation_tier }}">{{ tier_labels[host.recommendation_tier] }}</span>
+    </div>
+  </div>
+  <p>{{ host.summary or "No public summary yet." }}</p>
+  <dl class="spec-list">
+    <div><dt>CPU</dt><dd>{{ host.cpu_model or "Unknown" }}</dd></div>
+    <div><dt>GHz</dt><dd>{{ host.advertised_clock_ghz or "Unknown" }}</dd></div>
+    <div><dt>Storage</dt><dd>{{ host.storage_type or "Unknown" }}</dd></div>
+    <div><dt>Panel</dt><dd>{{ host.panel or "Unknown" }}</dd></div>
+  </dl>
+  <div class="pill-row">
+    {% for category in host.category_picks %}
+      <span class="pill">{{ category_labels[category] }}</span>
+    {% endfor %}
+  </div>
+</article>

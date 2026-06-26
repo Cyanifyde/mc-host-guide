@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ host.name }} - Minecraft Host Guide{% endblock %}
+{% block content %}
+<section class="host-detail-hero">
+  <div class="host-card-top">
+    {% if host.logo_url %}
+      <img class="host-logo large" src="{{ host.logo_url }}" alt="{{ host.name }} logo">
+    {% else %}
+      <span class="host-logo large fallback">{{ host.name[:1] }}</span>
+    {% endif %}
+    <div>
+      <p class="eyebrow">{{ tier_labels[host.recommendation_tier] }}</p>
+      <h1>{{ host.name }}</h1>
+      <p>{{ host.summary or "No public summary yet." }}</p>
+    </div>
+  </div>
+  <div class="form-actions">
+    {% if host.plan_url %}
+      <a class="button primary" href="{{ host.plan_url }}" rel="noreferrer">Open plan</a>
+    {% endif %}
+    {% if host.website_url %}
+      <a class="button" href="{{ host.website_url }}" rel="noreferrer">Website</a>
+    {% endif %}
+  </div>
+</section>
+
+<section class="detail-grid">
+  <article class="detail-panel">
+    <h2>CPU and hardware</h2>
+    <dl class="spec-list expanded">
+      <div><dt>CPU model</dt><dd>{{ host.cpu_model or "Unknown" }}</dd></div>
+      <div><dt>CPU vendor</dt><dd>{{ host.cpu_vendor or "Unknown" }}</dd></div>
+      <div><dt>Advertised GHz</dt><dd>{{ host.advertised_clock_ghz or "Unknown" }}</dd></div>
+      <div><dt>Boost GHz</dt><dd>{{ host.boost_clock_ghz or "Unknown" }}</dd></div>
+      <div><dt>Storage</dt><dd>{{ host.storage_type or "Unknown" }}</dd></div>
+      <div><dt>Locations</dt><dd>{{ host.locations|join(", ") or "Unknown" }}</dd></div>
+    </dl>
+    {% if host.cpu_notes %}<p>{{ host.cpu_notes }}</p>{% endif %}
+    {% if host.ram_notes %}<p>{{ host.ram_notes }}</p>{% endif %}
+  </article>
+  <article class="detail-panel">
+    <h2>Hosting fit</h2>
+    <dl class="spec-list expanded">
+      <div><dt>Panel</dt><dd>{{ host.panel or "Unknown" }}</dd></div>
+      <div><dt>DDoS</dt><dd>{{ host.ddos_protection or "Unknown" }}</dd></div>
+      <div><dt>Modpacks</dt><dd>{{ host.modpack_support or "Unknown" }}</dd></div>
+      <div><dt>Status</dt><dd>{{ status_labels[host.status] }}</dd></div>
+    </dl>
+    {% if host.server_types %}
+      <div class="pill-row">
+        {% for item in host.server_types %}<span class="pill">{{ item }}</span>{% endfor %}
+      </div>
+    {% endif %}
+    {% if host.price_notes %}<p>{{ host.price_notes }}</p>{% endif %}
+  </article>
+</section>
+
+<section class="detail-grid">
+  <article class="detail-panel">
+    <h2>Pros</h2>
+    <ul class="clean-list">
+      {% for item in host.pros %}<li>{{ item }}</li>{% else %}<li>No pros recorded.</li>{% endfor %}
+    </ul>
+  </article>
+  <article class="detail-panel">
+    <h2>Cons and caveats</h2>
+    <ul class="clean-list">
+      {% for item in host.cons %}<li>{{ item }}</li>{% else %}<li>No cons recorded.</li>{% endfor %}
+    </ul>
+    {% if host.caveats %}<p>{{ host.caveats }}</p>{% endif %}
+  </article>
+</section>
+
+<section class="detail-panel">
+  <h2>Verification</h2>
+  <p><strong>Last verified:</strong> {{ host.last_verified or "Not recorded" }}</p>
+  {% if host.trust_notes %}<p>{{ host.trust_notes }}</p>{% endif %}
+  {% if host.source_urls %}
+    <ul class="source-list">
+      {% for url in host.source_urls %}
+        <li><a href="{{ url }}" rel="noreferrer">{{ url }}</a></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</section>
+{% endblock %}
