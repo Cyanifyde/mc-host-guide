@@ -14,6 +14,7 @@ from flask import (
     url_for,
 )
 
+from ai_import import DEFAULT_IMPORT_MODEL, import_host_from_url
 from build_site import build_site
 from host_store import (
     CATEGORY_LABELS,
@@ -56,6 +57,7 @@ def inject_options():
         "hosting_type_options": HOSTING_TYPE_OPTIONS,
         "hosting_type_labels": HOSTING_TYPE_LABELS,
         "host_tag_options": HOST_TAG_OPTIONS,
+        "ai_import_model": DEFAULT_IMPORT_MODEL,
     }
 
 
@@ -274,6 +276,33 @@ def preview():
 @app.route("/site/<path:filename>")
 def preview_file(filename: str = "index.html"):
     return send_from_directory(DOCS_DIR, filename)
+
+
+@app.route("/hosts/import-ai", methods=["POST"])
+def import_host_ai():
+    payload = request.get_json(silent=True) or {}
+    url = str(payload.get("url", "")).strip()
+    notes = str(payload.get("notes", "") or "")
+    model = str(payload.get("model", "") or DEFAULT_IMPORT_MODEL).strip()
+    use_web_search = bool(payload.get("web_search", True))
+    if not url:
+        return jsonify({"ok": False, "error": "Enter a webpage URL."}), 400
+    try:
+        result = import_host_from_url(url, notes=notes, model=model, use_web_search=use_web_search)
+    except Exception as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 500
+
+    host = result["host"]
+    return jsonify(
+        {
+            "ok": True,
+            "host": host,
+            "plan_tiers": editor_plan_tiers(host),
+            "sources": result.get("sources", []),
+            "warnings": result.get("warnings", []),
+            "model": result.get("model", model),
+        }
+    )
 
 
 def host_from_form(existing_ids: set[str], existing: dict | None = None) -> dict:

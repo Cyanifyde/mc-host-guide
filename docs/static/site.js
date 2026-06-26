@@ -748,6 +748,205 @@ function wirePlanEditor() {
   });
 }
 
+function wireAiImport() {
+  const panel = document.querySelector("[data-ai-import]");
+  if (!panel) return;
+  const form = panel.closest("form");
+  const endpoint = panel.dataset.aiImportEndpoint;
+  const run = panel.querySelector("[data-ai-import-run]");
+  const status = panel.querySelector("[data-ai-import-status]");
+  const sources = panel.querySelector("[data-ai-import-sources]");
+  const urlInput = panel.querySelector("[data-ai-import-url]");
+  const modelInput = panel.querySelector("[data-ai-import-model]");
+  const notesInput = panel.querySelector("[data-ai-import-notes]");
+  const webSearchInput = panel.querySelector("[data-ai-import-web-search]");
+
+  function setStatus(message, tone = "") {
+    if (!status) return;
+    status.textContent = message;
+    status.dataset.tone = tone;
+  }
+
+  function values(value) {
+    if (Array.isArray(value)) return value.filter(Boolean);
+    if (!value) return [];
+    return String(value).split(/\n|,/).map((item) => item.trim()).filter(Boolean);
+  }
+
+  function setField(name, value) {
+    const field = form?.elements[name];
+    if (!field || field instanceof RadioNodeList) return;
+    field.value = value || "";
+  }
+
+  function setListField(name, value) {
+    setField(name, values(value).join("\n"));
+  }
+
+  function setCheckboxGroup(name, selectedValues) {
+    const selected = new Set(values(selectedValues));
+    for (const input of form.querySelectorAll(`input[name="${name}"]`)) {
+      input.checked = selected.has(input.value);
+    }
+  }
+
+  function setPlanField(row, field, value) {
+    const input = row.querySelector(`[name="plan_${field}"]`);
+    if (!input) return;
+    if (["location_tags", "support_channels", "server_types"].includes(field)) {
+      input.value = values(value).join("\n");
+      return;
+    }
+    input.value = value || "";
+  }
+
+  function replacePlanRows(plans) {
+    const rows = form.querySelector("[data-plan-rows]");
+    const template = form.querySelector("[data-plan-template]");
+    if (!rows || !template) return;
+    rows.textContent = "";
+    const draftPlans = plans?.length ? plans : [{}];
+    for (const plan of draftPlans) {
+      rows.appendChild(template.content.cloneNode(true));
+      const row = rows.querySelector("[data-plan-row]:last-child");
+      for (const field of [
+        "name",
+        "price_monthly_usd",
+        "ram_gb",
+        "player_slots",
+        "recommended_players",
+        "storage_gb",
+        "storage_type",
+        "plan_url",
+        "price_notes",
+        "cpu_model",
+        "cpu_vendor",
+        "cpu_cores",
+        "cpu_allocation",
+        "advertised_clock_ghz",
+        "boost_clock_ghz",
+        "memory_speed_mhz",
+        "benchmark_score",
+        "panel",
+        "ddos_protection",
+        "modpack_support",
+        "location_tags",
+        "support_channels",
+        "server_types",
+        "support_notes",
+        "notes",
+      ]) {
+        setPlanField(row, field, plan?.[field]);
+      }
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value || "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
+  function renderSources(sourceUrls, warnings) {
+    if (!sources) return;
+    const items = [
+      ...(sourceUrls || []).slice(0, 8).map((source) => `<li><a href="${escapeHtml(source)}" rel="noreferrer">${escapeHtml(source)}</a></li>`),
+      ...(warnings || []).map((warning) => `<li class="warning">${escapeHtml(warning)}</li>`),
+    ];
+    sources.hidden = !items.length;
+    sources.innerHTML = items.length ? `<strong>Import context</strong><ul>${items.join("")}</ul>` : "";
+  }
+
+  function fillHost(host, plans) {
+    for (const field of [
+      "name",
+      "website_url",
+      "plan_url",
+      "logo_url",
+      "summary",
+      "cpu_model",
+      "cpu_vendor",
+      "advertised_clock_ghz",
+      "boost_clock_ghz",
+      "memory_speed_mhz",
+      "benchmark_score",
+      "benchmark_notes",
+      "cpu_notes",
+      "ram_notes",
+      "storage_type",
+      "panel",
+      "ddos_protection",
+      "modpack_support",
+      "support_notes",
+      "price_notes",
+      "last_verified",
+      "status",
+      "trust_notes",
+      "recommendation_tier",
+      "caveats",
+    ]) {
+      setField(field, host?.[field]);
+    }
+    for (const field of [
+      "tags",
+      "locations",
+      "location_tags",
+      "support_channels",
+      "server_types",
+      "source_urls",
+      "pros",
+      "cons",
+    ]) {
+      setListField(field, host?.[field]);
+    }
+    setCheckboxGroup("hosting_types", host?.hosting_types || ["minecraft"]);
+    setCheckboxGroup("category_picks", host?.category_picks || []);
+    replacePlanRows(plans || host?.plans || []);
+    form.dispatchEvent(new Event("input", {bubbles: true}));
+  }
+
+  async function runImport() {
+    if (!endpoint || !urlInput?.value.trim()) {
+      setStatus("Enter a webpage URL.", "error");
+      urlInput?.focus();
+      return;
+    }
+    run.disabled = true;
+    setStatus("Fetching pages and asking Ollama...");
+    renderSources([], []);
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          url: urlInput.value.trim(),
+          notes: notesInput?.value || "",
+          model: modelInput?.value || "",
+          web_search: Boolean(webSearchInput?.checked),
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) throw new Error(payload.error || "Import failed.");
+      fillHost(payload.host, payload.plan_tiers);
+      renderSources(payload.sources, payload.warnings);
+      setStatus(`Draft filled with ${payload.plan_tiers?.length || 0} tier row(s). Review before saving.`, "success");
+    } catch (error) {
+      setStatus(error.message || "Import failed.", "error");
+    } finally {
+      run.disabled = false;
+    }
+  }
+
+  run?.addEventListener("click", runImport);
+  panel.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" || !event.target.matches("input")) return;
+    event.preventDefault();
+    runImport();
+  });
+}
+
 function wireReorder() {
   const list = document.querySelector("[data-reorder-list]");
   const save = document.querySelector("[data-save-order]");
@@ -844,5 +1043,6 @@ document.addEventListener("DOMContentLoaded", () => {
   wireHostTierDetail();
   wireHostForm();
   wirePlanEditor();
+  wireAiImport();
   wireReorder();
 });

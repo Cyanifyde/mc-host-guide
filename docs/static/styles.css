@@ -287,6 +287,16 @@ legend {
   font-size: 0.76rem;
 }
 
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.check-row input {
+  width: auto;
+}
+
 input,
 select,
 textarea {
@@ -884,6 +894,52 @@ textarea {
   background: var(--surface);
   justify-content: flex-end;
   padding: 8px;
+}
+
+.ai-import-panel {
+  border-left: 3px solid var(--accent);
+}
+
+.ai-import-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.ai-import-status {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.ai-import-status[data-tone="success"] {
+  color: var(--accent);
+}
+
+.ai-import-status[data-tone="error"] {
+  color: var(--bad);
+}
+
+.ai-import-sources {
+  border: 1px solid var(--line);
+  background: var(--muted-surface);
+  margin-top: 12px;
+  padding: 10px;
+}
+
+.ai-import-sources ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.ai-import-sources li {
+  margin-bottom: 4px;
+  overflow-wrap: anywhere;
+}
+
+.ai-import-sources .warning {
+  color: var(--warn);
 }
 
 .unsaved-status {

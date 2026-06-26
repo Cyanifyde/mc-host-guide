@@ -11,6 +11,8 @@ python app.py
 
 Open <http://127.0.0.1:5000/> to manage hosts.
 
+The New host page includes an AI webpage import panel. Paste a provider URL, add any notes you already know, and it will fetch page/search context before asking Ollama for structured host and plan data. The result fills the editable form without saving, so you can review and change it before pressing Save. Set `OLLAMA_IMPORT_MODEL` to change the default model shown in the form.
+
 The CMS writes host data to `data/hosts.json`. Use the Reorder page to drag hosts into rank order, then use the Build page or run:
 
 ```powershell

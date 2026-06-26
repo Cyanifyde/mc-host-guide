@@ -21,6 +21,40 @@
   </nav>
 
 <form class="edit-form" method="post" data-host-form>
+  {% if mode == "new" %}
+  <section class="form-section ai-import-panel" data-ai-import data-ai-import-endpoint="{{ url_for('import_host_ai') }}">
+    <div class="section-heading compact">
+      <div>
+        <h2>AI webpage import</h2>
+        <p class="muted">Paste a provider page, add anything you already know, then let Ollama draft the host fields and tiers. Review before saving.</p>
+      </div>
+    </div>
+    <div class="form-grid">
+      <label class="span-2">
+        <span>Webpage URL</span>
+        <input type="url" data-ai-import-url placeholder="https://example-host.com/minecraft-server-hosting">
+      </label>
+      <label>
+        <span>Ollama model</span>
+        <input data-ai-import-model value="{{ ai_import_model }}" placeholder="qwen3.5:cloud">
+      </label>
+      <label class="check-row">
+        <input type="checkbox" data-ai-import-web-search checked>
+        <span>Use web search and related pages</span>
+      </label>
+      <label class="span-2">
+        <span>Extra info for Ollama</span>
+        <textarea data-ai-import-notes rows="4" placeholder="Known plan names, trust concerns, region notes, coupon terms, or which product line to extract."></textarea>
+      </label>
+    </div>
+    <div class="ai-import-actions">
+      <button class="button primary" type="button" data-ai-import-run>Fill form from page</button>
+      <span class="ai-import-status" data-ai-import-status aria-live="polite">Ready</span>
+    </div>
+    <div class="ai-import-sources" data-ai-import-sources hidden></div>
+  </section>
+  {% endif %}
+
   <section class="form-section" id="identity">
     <h2>Identity</h2>
     <div class="form-grid">
