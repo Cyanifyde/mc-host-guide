@@ -24,7 +24,6 @@
           <option value="players-desc">Player slots high to low</option>
           <option value="base-ghz-desc">Base GHz high to low</option>
           <option value="peak-ghz-desc">Peak GHz high to low</option>
-          <option value="max-memory-desc">Node memory high to low</option>
           <option value="memory-speed-desc">Memory MHz high to low</option>
           <option value="benchmark-desc">Benchmark high to low</option>
           <option value="verified-desc">Recently verified</option>
@@ -117,13 +116,6 @@
           </div>
         </label>
         <label class="range-control">
-          <span>Node memory GB min</span>
-          <div class="range-pair">
-            <input data-range-key="maxMemory" data-range-bound="min" data-range-param="memMin" type="number" step="1" inputmode="numeric">
-            <input class="range-slider" data-slider-target="memMin" type="range" min="0" max="512" step="1" value="0" aria-label="Node memory minimum slider">
-          </div>
-        </label>
-        <label class="range-control">
           <span>Memory MHz min</span>
           <div class="range-pair">
             <input data-range-key="memorySpeed" data-range-bound="min" data-range-param="memSpeedMin" type="number" step="100" inputmode="numeric">
@@ -210,7 +202,6 @@
             data-status="{{ host.status }}"
             data-base-ghz="{{ host.advertised_clock_ghz }}"
             data-peak-ghz="{{ host.boost_clock_ghz }}"
-            data-max-memory="{{ host.max_memory_gb }}"
             data-memory-speed="{{ host.memory_speed_mhz }}"
             data-benchmark="{{ host.benchmark_score }}"
             data-price="{{ host.starting_price_usd }}"
@@ -258,7 +249,6 @@
               <div><dt>Cores</dt><dd data-selected-cores>{{ default_offer.get("cores") or "-" }}</dd></div>
               <div><dt>Base</dt><dd data-selected-base>{{ default_offer.get("baseGhz") or "-" }} GHz</dd></div>
               <div><dt>Peak</dt><dd data-selected-peak>{{ default_offer.get("peakGhz") or "-" }} GHz</dd></div>
-              <div><dt>Node</dt><dd data-selected-max-memory>{{ default_offer.get("maxMemory") or "-" }} GB</dd></div>
               <div><dt>Mem</dt><dd data-selected-memory>{{ default_offer.get("memorySpeed") or "-" }} MHz</dd></div>
               <div><dt>Bench</dt><dd data-selected-benchmark>{{ default_offer.get("benchmark") or "-" }}</dd></div>
             </dl>

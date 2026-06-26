@@ -350,7 +350,7 @@ def plan_from_public_offer(offer: dict) -> dict:
         "cpu_vendor": offer.get("cpuVendor", ""),
         "advertised_clock_ghz": offer.get("baseGhz", ""),
         "boost_clock_ghz": offer.get("peakGhz", ""),
-        "max_memory_gb": offer.get("maxMemory", ""),
+        "max_memory_gb": offer.get("planRam", "") or offer.get("maxMemory", ""),
         "memory_speed_mhz": offer.get("memorySpeed", ""),
         "benchmark_score": offer.get("benchmark", ""),
         "storage_type": offer.get("storageType", ""),
@@ -409,6 +409,7 @@ def plans_from_form() -> list[dict[str, str]]:
             field: (posted[field][index].strip() if index < len(posted[field]) else "")
             for field in fields
         }
+        plan["max_memory_gb"] = plan.get("ram_gb", "")
         if any(plan.values()):
             plans.append(plan)
     return plans

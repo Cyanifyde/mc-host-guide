@@ -863,13 +863,9 @@ textarea {
   align-items: center;
 }
 
-.sticky-save-bar {
-  position: sticky;
-  bottom: 0;
-  z-index: 9;
+.save-actions {
   border: 1px solid var(--line);
   background: var(--surface);
-  box-shadow: 0 -8px 24px rgba(22, 26, 23, 0.1);
   justify-content: flex-end;
   padding: 8px;
 }
@@ -896,18 +892,8 @@ textarea {
 
 .plan-row {
   display: grid;
-  grid-template-columns:
-    minmax(180px, 1.2fr)
-    minmax(86px, 0.6fr)
-    minmax(86px, 0.6fr)
-    minmax(190px, 1.1fr)
-    minmax(80px, 0.5fr)
-    minmax(130px, 0.8fr)
-    minmax(90px, 0.6fr)
-    minmax(150px, 1fr)
-    auto;
-  gap: 10px;
-  align-items: start;
+  grid-template-columns: 1fr;
+  gap: 12px;
   border: 1px solid var(--line);
   border-left: 3px solid var(--accent);
   border-radius: 4px;
@@ -919,47 +905,42 @@ textarea {
   background: #fbfcfa;
 }
 
-.plan-row-head {
-  display: none;
-  background: var(--muted-surface);
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 900;
-  padding: 6px 8px;
-}
-
 .plan-row > label > span {
   display: block;
 }
 
-.row-extra {
-  grid-column: 1 / -1;
+.tier-card-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+}
+
+.tier-group {
   border: 1px solid var(--line);
   background: var(--muted-surface);
-}
-
-.plan-row .icon-button {
-  grid-column: 9;
-  grid-row: 1;
-  align-self: start;
-}
-
-.row-extra summary {
-  cursor: pointer;
-  font-weight: 800;
-  padding: 7px 8px;
-}
-
-.row-extra-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  border-top: 1px solid var(--line);
   padding: 10px;
 }
 
-.row-extra label span {
-  display: block;
+.tier-group h3 {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+}
+
+.tier-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tier-field-wide {
+  grid-column: span 2;
+}
+
+.tier-field-full {
+  grid-column: 1 / -1;
 }
 
 input.invalid {
@@ -1325,14 +1306,12 @@ dd {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .plan-row,
-  .plan-row-head {
+  .tier-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .plan-row .icon-button {
-    grid-column: auto;
-    grid-row: auto;
+  .tier-field-wide {
+    grid-column: span 2;
   }
 
   .span-2,
@@ -1438,6 +1417,16 @@ dd {
 
   .selected-tier-grid {
     grid-template-columns: 1fr;
+  }
+
+  .tier-card-head,
+  .tier-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .tier-field-wide,
+  .tier-field-full {
+    grid-column: auto;
   }
 }
 

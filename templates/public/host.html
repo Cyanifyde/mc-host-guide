@@ -56,7 +56,8 @@
     <div><dt>CPU</dt><dd data-tier-detail-cpu>{{ default_offer.get("cpuModel") or "-" }}</dd></div>
     <div><dt>Cores</dt><dd data-tier-detail-cores>{{ default_offer.get("cores") or "-" }}</dd></div>
     <div><dt>Base / peak</dt><dd data-tier-detail-ghz>{{ default_offer.get("baseGhz") or "-" }} / {{ default_offer.get("peakGhz") or "-" }} GHz</dd></div>
-    <div><dt>Node memory</dt><dd data-tier-detail-memory>{% if default_offer.get("maxMemory") %}{{ default_offer.get("maxMemory") }} GB{% else %}-{% endif %} max, {% if default_offer.get("memorySpeed") %}{{ default_offer.get("memorySpeed") }} MHz{% else %}-{% endif %}</dd></div>
+    <div><dt>Memory speed</dt><dd data-tier-detail-memory-speed>{% if default_offer.get("memorySpeed") %}{{ default_offer.get("memorySpeed") }} MHz{% else %}-{% endif %}</dd></div>
+    <div><dt>Benchmark</dt><dd data-tier-detail-benchmark>{{ default_offer.get("benchmark") or "-" }}</dd></div>
     <div><dt>Regions</dt><dd data-tier-detail-regions>{{ default_offer.get("locationTags", [])|join(", ") or "-" }}</dd></div>
     <div><dt>Support</dt><dd data-tier-detail-support>{{ default_offer.get("supportChannels", [])|join(", ") or "-" }}</dd></div>
     <div><dt>Features</dt><dd data-tier-detail-features>{{ [default_offer.get("panel"), default_offer.get("ddosProtection"), default_offer.get("modpackSupport")]|select|join(" - ") or "-" }}</dd></div>
@@ -75,7 +76,7 @@
     <strong>{% if host.lowest_price_per_gb_usd %}${{ host.lowest_price_per_gb_usd }}/GB{% else %}Unknown{% endif %}</strong>
   </div>
   <div class="quick-fact">
-    <span>Max plan RAM</span>
+    <span>Max RAM</span>
     <strong>{% if host.max_plan_ram_gb %}{{ host.max_plan_ram_gb }} GB{% else %}Unknown{% endif %}</strong>
   </div>
   <div class="quick-fact">
@@ -113,7 +114,7 @@
             <th>RAM</th>
             <th>CPU</th>
             <th>GHz</th>
-            <th>Node memory</th>
+            <th>Memory / bench</th>
             <th>Slots</th>
             <th>Rec. players</th>
             <th>Storage</th>
@@ -141,8 +142,7 @@
                 <br>Peak {{ offer.peakGhz or "-" }}
               </td>
               <td>
-                Node max {% if offer.maxMemory %}{{ offer.maxMemory }} GB{% else %}-{% endif %}
-                <br>Speed {% if offer.memorySpeed %}{{ offer.memorySpeed }} MHz{% else %}-{% endif %}
+                Speed {% if offer.memorySpeed %}{{ offer.memorySpeed }} MHz{% else %}-{% endif %}
                 <br>Bench {{ offer.benchmark or "-" }}
               </td>
               <td>{{ offer.players or "-" }}</td>
@@ -178,7 +178,6 @@
       <div><dt>CPU vendors</dt><dd>{{ host.cpu_vendor_summary or "-" }}</dd></div>
       <div><dt>Base GHz</dt><dd>{{ host.base_ghz_summary or "-" }}</dd></div>
       <div><dt>Peak GHz</dt><dd>{{ host.peak_ghz_summary or "-" }}</dd></div>
-      <div><dt>Node max memory</dt><dd>{{ host.max_memory_summary or "-" }}</dd></div>
       <div><dt>Memory speed</dt><dd>{{ host.memory_speed_summary or "-" }}</dd></div>
       <div><dt>Benchmark</dt><dd>{{ host.benchmark_summary or "-" }}</dd></div>
       <div><dt>Storage</dt><dd>{{ host.storage_summary or "-" }}</dd></div>

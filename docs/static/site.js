@@ -139,7 +139,6 @@ function wireDirectoryFilters() {
       cpuModel: row.dataset.cpuModel || "",
       baseGhz: row.dataset.baseGhz || "",
       peakGhz: row.dataset.peakGhz || "",
-      maxMemory: row.dataset.maxMemory || "",
       memorySpeed: row.dataset.memorySpeed || "",
       benchmark: row.dataset.benchmark || "",
       locationTags: splitValues(row.dataset.locationTags),
@@ -179,7 +178,6 @@ function wireDirectoryFilters() {
     if (value === "players-desc") return ["players", "desc"];
     if (value === "base-ghz-desc") return ["baseGhz", "desc"];
     if (value === "peak-ghz-desc") return ["peakGhz", "desc"];
-    if (value === "max-memory-desc") return ["maxMemory", "desc"];
     if (value === "memory-speed-desc") return ["memorySpeed", "desc"];
     if (value === "benchmark-desc") return ["benchmark", "desc"];
     return null;
@@ -226,7 +224,6 @@ function wireDirectoryFilters() {
     setText(row, "[data-selected-cores]", offer.cores || "-");
     setText(row, "[data-selected-base]", formatMetric(offer.baseGhz, " GHz"));
     setText(row, "[data-selected-peak]", formatMetric(offer.peakGhz, " GHz"));
-    setText(row, "[data-selected-max-memory]", formatMetric(offer.maxMemory, " GB"));
     setText(row, "[data-selected-memory]", formatMetric(offer.memorySpeed, " MHz"));
     setText(row, "[data-selected-benchmark]", offer.benchmark || "-");
     setText(row, "[data-selected-price]", offer.price ? `$${offer.price}/mo` : "No price");
@@ -404,7 +401,6 @@ function wireDirectoryFilters() {
       if (value === "players-desc") return compareNumber(a, b, "players");
       if (value === "base-ghz-desc") return compareNumber(a, b, "baseGhz");
       if (value === "peak-ghz-desc") return compareNumber(a, b, "peakGhz");
-      if (value === "max-memory-desc") return compareNumber(a, b, "maxMemory");
       if (value === "memory-speed-desc") return compareNumber(a, b, "memorySpeed");
       if (value === "benchmark-desc") return compareNumber(a, b, "benchmark");
       if (value === "verified-desc") {
@@ -626,10 +622,8 @@ function wireHostTierDetail() {
     set("[data-tier-detail-cpu]", offer.cpuModel || "-");
     set("[data-tier-detail-cores]", offer.cores || "-");
     set("[data-tier-detail-ghz]", `${offer.baseGhz || "-"} / ${offer.peakGhz || "-"} GHz`);
-    set(
-      "[data-tier-detail-memory]",
-      `${offer.maxMemory ? `${offer.maxMemory} GB` : "-"} max, ${offer.memorySpeed ? `${offer.memorySpeed} MHz` : "-"}`,
-    );
+    set("[data-tier-detail-memory-speed]", offer.memorySpeed ? `${offer.memorySpeed} MHz` : "-");
+    set("[data-tier-detail-benchmark]", offer.benchmark || "-");
     set("[data-tier-detail-regions]", (offer.locationTags || []).join(", ") || "-");
     set("[data-tier-detail-support]", (offer.supportChannels || []).join(", ") || "-");
     set(

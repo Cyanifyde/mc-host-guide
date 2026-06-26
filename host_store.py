@@ -578,7 +578,7 @@ def build_public_offers(host: dict[str, Any]) -> list[dict[str, Any]]:
                     "cores": offer_metric(plan, "cpu_cores") or offer_metric(tier, "cpu_cores"),
                     "cpuAllocation": offer_metric(plan, "cpu_allocation")
                     or offer_metric(tier, "cpu_allocation"),
-                    "maxMemory": offer_field(plan, tier, host, "max_memory_gb"),
+                    "maxMemory": offer_field(plan, tier, host, "max_memory_gb") or ram,
                     "memorySpeed": offer_field(plan, tier, host, "memory_speed_mhz"),
                     "benchmark": offer_field(plan, tier, host, "benchmark_score"),
                     "storageType": offer_field(plan, tier, host, "storage_type"),

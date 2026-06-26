@@ -86,119 +86,109 @@
     <div class="section-heading compact">
       <div>
         <h2>Tiers</h2>
-        <p class="muted">Each row is one real purchasable tier. Fill the visible comparison fields first, then open advanced tier fields for storage, panel, DDoS, modpacks, URL, and notes when the host publishes them.</p>
+        <p class="muted">Each card is one real purchasable tier. Price, RAM, CPU/specs, regions, support, storage, panel, DDoS, modpacks, URL, and notes all live together.</p>
       </div>
       <button class="button" type="button" data-add-plan>Add tier</button>
     </div>
     <div class="plan-editor" data-plan-editor>
-      <div class="plan-row plan-row-head" aria-hidden="true">
-        <span>Tier</span>
-        <span>$/mo</span>
-        <span>RAM GB</span>
-        <span>CPU model</span>
-        <span>Cores</span>
-        <span>Regions</span>
-        <span>Slots</span>
-        <span>Support</span>
-        <span></span>
-      </div>
       <div class="plan-rows" data-plan-rows>
         {% set plans = plan_tiers if plan_tiers else [{}] %}
         {% for plan in plans %}
           <div class="plan-row" data-plan-row>
-            <label>
-              <span>Tier</span>
-              <input name="plan_name" value="{{ plan.get('name', '') }}" placeholder="8 GB Ryzen EU">
-            </label>
-            <label>
-              <span>$/mo</span>
-              <input name="plan_price_monthly_usd" value="{{ plan.get('price_monthly_usd', '') }}" type="number" min="0" step="0.01" inputmode="decimal" data-plan-number>
-            </label>
-            <label>
-              <span>RAM GB</span>
-              <input name="plan_ram_gb" value="{{ plan.get('ram_gb', '') }}" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number>
-            </label>
-            <label>
-              <span>CPU model</span>
-              <input name="plan_cpu_model" value="{{ plan.get('cpu_model', '') }}" placeholder="Ryzen 9 7950X">
-            </label>
-            <label>
-              <span>Cores</span>
-              <input name="plan_cpu_cores" value="{{ plan.get('cpu_cores', '') }}" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number>
-            </label>
-            <label>
-              <span>Regions</span>
-              <textarea name="plan_location_tags" rows="2" placeholder="us-east&#10;eu-west">{{ plan.get('location_tags', [])|join('\n') }}</textarea>
-            </label>
-            <label>
-              <span>Slots</span>
-              <input name="plan_player_slots" value="{{ plan.get('player_slots', '') }}" type="number" min="0" step="1" inputmode="numeric" data-plan-number>
-            </label>
-            <label>
-              <span>Support</span>
-              <textarea name="plan_support_channels" rows="2" placeholder="tickets&#10;discord">{{ plan.get('support_channels', [])|join('\n') }}</textarea>
-            </label>
-            <details class="row-extra">
-              <summary>Advanced tier fields: storage, panel, DDoS, modpacks, URL, notes</summary>
-              <div class="row-extra-grid">
-                <label><span>Plan URL</span><input name="plan_plan_url" value="{{ plan.get('plan_url', '') }}" type="url"></label>
+            <div class="tier-card-head">
+              <label>
+                <span>Tier name</span>
+                <input name="plan_name" value="{{ plan.get('name', '') }}" placeholder="8 GB Ryzen EU">
+              </label>
+              <button class="button danger icon-button" type="button" data-remove-plan title="Remove tier">Remove</button>
+            </div>
+            <div class="tier-group">
+              <h3>Plan and pricing</h3>
+              <div class="tier-fields">
+                <label><span>$/mo</span><input name="plan_price_monthly_usd" value="{{ plan.get('price_monthly_usd', '') }}" type="number" min="0" step="0.01" inputmode="decimal" data-plan-number></label>
+                <label><span>RAM GB</span><input name="plan_ram_gb" value="{{ plan.get('ram_gb', '') }}" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+                <label><span>Player slots</span><input name="plan_player_slots" value="{{ plan.get('player_slots', '') }}" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
                 <label><span>Recommended players</span><input name="plan_recommended_players" value="{{ plan.get('recommended_players', '') }}" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
                 <label><span>Storage GB</span><input name="plan_storage_gb" value="{{ plan.get('storage_gb', '') }}" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+                <label><span>Storage type</span><input name="plan_storage_type" value="{{ plan.get('storage_type', '') }}" placeholder="NVMe SSD"></label>
+                <label class="tier-field-wide"><span>Plan URL</span><input name="plan_plan_url" value="{{ plan.get('plan_url', '') }}" type="url"></label>
+                <label class="tier-field-full"><span>Price notes</span><textarea name="plan_price_notes" rows="2">{{ plan.get('price_notes', '') }}</textarea></label>
+              </div>
+            </div>
+            <div class="tier-group">
+              <h3>CPU and specs</h3>
+              <div class="tier-fields">
+                <label class="tier-field-wide"><span>CPU model</span><input name="plan_cpu_model" value="{{ plan.get('cpu_model', '') }}" placeholder="Ryzen 9 7950X"></label>
                 <label><span>CPU vendor</span><input name="plan_cpu_vendor" value="{{ plan.get('cpu_vendor', '') }}" placeholder="AMD / Intel"></label>
+                <label><span>Cores</span><input name="plan_cpu_cores" value="{{ plan.get('cpu_cores', '') }}" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
                 <label><span>CPU allocation</span><input name="plan_cpu_allocation" value="{{ plan.get('cpu_allocation', '') }}" placeholder="shared / dedicated / burst"></label>
                 <label><span>Base GHz</span><input name="plan_advertised_clock_ghz" value="{{ plan.get('advertised_clock_ghz', '') }}" type="number" min="0" step="0.1" inputmode="decimal" data-plan-number></label>
                 <label><span>Peak GHz</span><input name="plan_boost_clock_ghz" value="{{ plan.get('boost_clock_ghz', '') }}" type="number" min="0" step="0.1" inputmode="decimal" data-plan-number></label>
-                <label><span>Max memory GB</span><input name="plan_max_memory_gb" value="{{ plan.get('max_memory_gb', '') }}" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
                 <label><span>Memory speed MHz</span><input name="plan_memory_speed_mhz" value="{{ plan.get('memory_speed_mhz', '') }}" type="number" min="0" step="100" inputmode="numeric" data-plan-number></label>
                 <label><span>Benchmark score</span><input name="plan_benchmark_score" value="{{ plan.get('benchmark_score', '') }}" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
-                <label><span>Storage type</span><input name="plan_storage_type" value="{{ plan.get('storage_type', '') }}" placeholder="NVMe SSD"></label>
+              </div>
+            </div>
+            <div class="tier-group">
+              <h3>Hosting features</h3>
+              <div class="tier-fields">
                 <label><span>Panel</span><input name="plan_panel" value="{{ plan.get('panel', '') }}" placeholder="Pterodactyl"></label>
                 <label><span>DDoS protection</span><input name="plan_ddos_protection" value="{{ plan.get('ddos_protection', '') }}"></label>
                 <label><span>Modpack support</span><input name="plan_modpack_support" value="{{ plan.get('modpack_support', '') }}"></label>
-                <label><span>Server types</span><textarea name="plan_server_types" rows="2">{{ plan.get('server_types', [])|join('\n') }}</textarea></label>
-                <label><span>Support notes</span><textarea name="plan_support_notes" rows="2">{{ plan.get('support_notes', '') }}</textarea></label>
-                <label><span>Price notes</span><textarea name="plan_price_notes" rows="2">{{ plan.get('price_notes', '') }}</textarea></label>
-                <label class="span-2"><span>Notes</span><input name="plan_notes" value="{{ plan.get('notes', '') }}"></label>
+                <label><span>Regions</span><textarea name="plan_location_tags" rows="3" placeholder="us-east&#10;eu-west">{{ plan.get('location_tags', [])|join('\n') }}</textarea></label>
+                <label><span>Support channels</span><textarea name="plan_support_channels" rows="3" placeholder="tickets&#10;discord">{{ plan.get('support_channels', [])|join('\n') }}</textarea></label>
+                <label><span>Server types</span><textarea name="plan_server_types" rows="3">{{ plan.get('server_types', [])|join('\n') }}</textarea></label>
+                <label class="tier-field-wide"><span>Support notes</span><textarea name="plan_support_notes" rows="3">{{ plan.get('support_notes', '') }}</textarea></label>
+                <label class="tier-field-full"><span>Notes</span><input name="plan_notes" value="{{ plan.get('notes', '') }}"></label>
               </div>
-            </details>
-            <button class="button danger icon-button" type="button" data-remove-plan title="Remove plan">Remove</button>
+            </div>
           </div>
         {% endfor %}
       </div>
       <template data-plan-template>
         <div class="plan-row" data-plan-row>
-          <label><span>Tier</span><input name="plan_name" placeholder="8 GB Ryzen EU"></label>
-          <label><span>$/mo</span><input name="plan_price_monthly_usd" type="number" min="0" step="0.01" inputmode="decimal" data-plan-number></label>
-          <label><span>RAM GB</span><input name="plan_ram_gb" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
-          <label><span>CPU model</span><input name="plan_cpu_model" placeholder="Ryzen 9 7950X"></label>
-          <label><span>Cores</span><input name="plan_cpu_cores" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
-          <label><span>Regions</span><textarea name="plan_location_tags" rows="2" placeholder="us-east&#10;eu-west"></textarea></label>
-          <label><span>Slots</span><input name="plan_player_slots" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
-          <label><span>Support</span><textarea name="plan_support_channels" rows="2" placeholder="tickets&#10;discord"></textarea></label>
-          <details class="row-extra">
-            <summary>Advanced tier fields: storage, panel, DDoS, modpacks, URL, notes</summary>
-            <div class="row-extra-grid">
-              <label><span>Plan URL</span><input name="plan_plan_url" type="url"></label>
+          <div class="tier-card-head">
+            <label><span>Tier name</span><input name="plan_name" placeholder="8 GB Ryzen EU"></label>
+            <button class="button danger icon-button" type="button" data-remove-plan title="Remove tier">Remove</button>
+          </div>
+          <div class="tier-group">
+            <h3>Plan and pricing</h3>
+            <div class="tier-fields">
+              <label><span>$/mo</span><input name="plan_price_monthly_usd" type="number" min="0" step="0.01" inputmode="decimal" data-plan-number></label>
+              <label><span>RAM GB</span><input name="plan_ram_gb" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+              <label><span>Player slots</span><input name="plan_player_slots" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
               <label><span>Recommended players</span><input name="plan_recommended_players" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
               <label><span>Storage GB</span><input name="plan_storage_gb" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+              <label><span>Storage type</span><input name="plan_storage_type" placeholder="NVMe SSD"></label>
+              <label class="tier-field-wide"><span>Plan URL</span><input name="plan_plan_url" type="url"></label>
+              <label class="tier-field-full"><span>Price notes</span><textarea name="plan_price_notes" rows="2"></textarea></label>
+            </div>
+          </div>
+          <div class="tier-group">
+            <h3>CPU and specs</h3>
+            <div class="tier-fields">
+              <label class="tier-field-wide"><span>CPU model</span><input name="plan_cpu_model" placeholder="Ryzen 9 7950X"></label>
               <label><span>CPU vendor</span><input name="plan_cpu_vendor" placeholder="AMD / Intel"></label>
+              <label><span>Cores</span><input name="plan_cpu_cores" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
               <label><span>CPU allocation</span><input name="plan_cpu_allocation" placeholder="shared / dedicated / burst"></label>
               <label><span>Base GHz</span><input name="plan_advertised_clock_ghz" type="number" min="0" step="0.1" inputmode="decimal" data-plan-number></label>
               <label><span>Peak GHz</span><input name="plan_boost_clock_ghz" type="number" min="0" step="0.1" inputmode="decimal" data-plan-number></label>
-              <label><span>Max memory GB</span><input name="plan_max_memory_gb" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
               <label><span>Memory speed MHz</span><input name="plan_memory_speed_mhz" type="number" min="0" step="100" inputmode="numeric" data-plan-number></label>
               <label><span>Benchmark score</span><input name="plan_benchmark_score" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
-              <label><span>Storage type</span><input name="plan_storage_type" placeholder="NVMe SSD"></label>
+            </div>
+          </div>
+          <div class="tier-group">
+            <h3>Hosting features</h3>
+            <div class="tier-fields">
               <label><span>Panel</span><input name="plan_panel" placeholder="Pterodactyl"></label>
               <label><span>DDoS protection</span><input name="plan_ddos_protection"></label>
               <label><span>Modpack support</span><input name="plan_modpack_support"></label>
-              <label><span>Server types</span><textarea name="plan_server_types" rows="2"></textarea></label>
-              <label><span>Support notes</span><textarea name="plan_support_notes" rows="2"></textarea></label>
-              <label><span>Price notes</span><textarea name="plan_price_notes" rows="2"></textarea></label>
-              <label class="span-2"><span>Notes</span><input name="plan_notes"></label>
+              <label><span>Regions</span><textarea name="plan_location_tags" rows="3" placeholder="us-east&#10;eu-west"></textarea></label>
+              <label><span>Support channels</span><textarea name="plan_support_channels" rows="3" placeholder="tickets&#10;discord"></textarea></label>
+              <label><span>Server types</span><textarea name="plan_server_types" rows="3"></textarea></label>
+              <label class="tier-field-wide"><span>Support notes</span><textarea name="plan_support_notes" rows="3"></textarea></label>
+              <label class="tier-field-full"><span>Notes</span><input name="plan_notes"></label>
             </div>
-          </details>
-          <button class="button danger icon-button" type="button" data-remove-plan title="Remove plan">Remove</button>
+          </div>
         </div>
       </template>
     </div>
@@ -228,10 +218,6 @@
       <label>
         <span>Peak GHz</span>
         <input name="boost_clock_ghz" value="{{ host.boost_clock_ghz }}" type="number" min="0" step="0.1" inputmode="decimal">
-      </label>
-      <label>
-        <span>Max memory GB</span>
-        <input name="max_memory_gb" value="{{ host.max_memory_gb }}" type="number" min="0" step="0.5" inputmode="decimal">
       </label>
       <label>
         <span>Memory speed MHz</span>
@@ -331,7 +317,7 @@
     </div>
   </section>
 
-  <div class="form-actions sticky-save-bar">
+  <div class="form-actions save-actions">
     <span class="unsaved-status" data-unsaved-status>Ready</span>
     <button class="button primary" type="submit">Save host</button>
     <a class="button" href="{{ url_for('dashboard') }}">Cancel</a>
