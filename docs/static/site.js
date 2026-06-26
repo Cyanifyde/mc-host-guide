@@ -314,6 +314,41 @@ function wirePlanEditor() {
   const rows = root.querySelector("[data-plan-rows]");
   const template = root.querySelector("[data-plan-template]");
   const add = document.querySelector("[data-add-plan]");
+  const form = root.closest("form");
+
+  function setFieldError(input, message) {
+    input.classList.toggle("invalid", Boolean(message));
+    input.setCustomValidity(message);
+    let error = input.parentElement?.querySelector(".field-error");
+    if (!message) {
+      error?.remove();
+      return;
+    }
+    if (!error) {
+      error = document.createElement("span");
+      error.className = "field-error";
+      input.parentElement?.appendChild(error);
+    }
+    error.textContent = message;
+  }
+
+  function validateNumberInput(input) {
+    if (!input.value.trim()) {
+      setFieldError(input, "");
+      return true;
+    }
+    const value = parseNumber(input.value);
+    let message = "";
+    if (value === null) message = "Use a number.";
+    else if (value < 0) message = "Use zero or higher.";
+    setFieldError(input, message);
+    return !message;
+  }
+
+  function validatePlanRows() {
+    const inputs = Array.from(root.querySelectorAll("[data-plan-number]"));
+    return inputs.every(validateNumberInput);
+  }
 
   add?.addEventListener("click", () => {
     rows.appendChild(template.content.cloneNode(true));
@@ -326,6 +361,22 @@ function wirePlanEditor() {
     if (!remove) return;
     const row = remove.closest("[data-plan-row]");
     row?.remove();
+  });
+
+  root.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-plan-number]");
+    if (input) validateNumberInput(input);
+  });
+
+  root.addEventListener("blur", (event) => {
+    const input = event.target.closest("[data-plan-number]");
+    if (input) validateNumberInput(input);
+  }, true);
+
+  form?.addEventListener("submit", (event) => {
+    if (validatePlanRows()) return;
+    event.preventDefault();
+    root.querySelector(".invalid")?.focus();
   });
 }
 
@@ -343,6 +394,21 @@ function wireReorder() {
     });
   }
 
+  function markChanged() {
+    refreshRanks();
+    if (status) status.textContent = "Order changed. Save to persist.";
+  }
+
+  function moveItem(item, direction) {
+    if (!item) return;
+    const sibling = direction === "up" ? item.previousElementSibling : item.nextElementSibling;
+    if (!sibling || !sibling.classList.contains("reorder-item")) return;
+    if (direction === "up") list.insertBefore(item, sibling);
+    else list.insertBefore(sibling, item);
+    item.focus();
+    markChanged();
+  }
+
   list.addEventListener("dragstart", (event) => {
     const item = event.target.closest(".reorder-item");
     if (!item) return;
@@ -355,8 +421,7 @@ function wireReorder() {
   list.addEventListener("dragend", () => {
     if (dragging) dragging.classList.remove("dragging");
     dragging = null;
-    refreshRanks();
-    status.textContent = "Order changed. Save to persist.";
+    markChanged();
   });
 
   list.addEventListener("dragover", (event) => {
@@ -366,6 +431,20 @@ function wireReorder() {
     const box = target.getBoundingClientRect();
     const after = event.clientY > box.top + box.height / 2;
     list.insertBefore(dragging, after ? target.nextSibling : target);
+  });
+
+  list.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-move-order]");
+    if (!button) return;
+    moveItem(button.closest(".reorder-item"), button.dataset.moveOrder);
+  });
+
+  list.addEventListener("keydown", (event) => {
+    if (!event.altKey || !["ArrowUp", "ArrowDown"].includes(event.key)) return;
+    const item = event.target.closest(".reorder-item");
+    if (!item) return;
+    event.preventDefault();
+    moveItem(item, event.key === "ArrowUp" ? "up" : "down");
   });
 
   save.addEventListener("click", async () => {

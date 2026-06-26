@@ -16,7 +16,7 @@
   </div>
   <ol class="reorder-list" data-reorder-list>
     {% for host in hosts %}
-      <li class="reorder-item" draggable="true" data-id="{{ host.id }}">
+      <li class="reorder-item" draggable="true" tabindex="0" data-id="{{ host.id }}">
         <span class="drag-handle" title="Drag">::</span>
         <span class="reorder-rank">{{ loop.index }}</span>
         <div>
@@ -31,6 +31,10 @@
           {% if host.location_tags or host.support_channels %}
             <small>{{ host.location_tags|join(", ") }}{% if host.location_tags and host.support_channels %} - {% endif %}{{ host.support_channels|join(", ") }}</small>
           {% endif %}
+        </div>
+        <div class="reorder-move-controls" aria-label="Move {{ host.name }}">
+          <button class="button move-button" type="button" data-move-order="up">Up</button>
+          <button class="button move-button" type="button" data-move-order="down">Down</button>
         </div>
       </li>
     {% else %}

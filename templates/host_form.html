@@ -11,8 +11,18 @@
   {% endif %}
 </section>
 
-<form class="edit-form" method="post">
-  <section class="form-section">
+<div class="form-workspace">
+  <nav class="form-nav" aria-label="Edit sections">
+    <a href="#identity">Identity</a>
+    <a href="#ranking">Ranking</a>
+    <a href="#specs">Specs</a>
+    <a href="#plans">Plans</a>
+    <a href="#features">Features</a>
+    <a href="#editorial">Editorial</a>
+  </nav>
+
+<form class="edit-form" method="post" data-host-form>
+  <section class="form-section" id="identity">
     <h2>Identity</h2>
     <div class="form-grid">
       <label>
@@ -38,7 +48,7 @@
     </div>
   </section>
 
-  <section class="form-section">
+  <section class="form-section" id="ranking">
     <h2>Ranking</h2>
     <div class="form-grid">
       <label>
@@ -73,7 +83,7 @@
     </div>
   </section>
 
-  <section class="form-section">
+  <section class="form-section" id="specs">
     <h2>CPU and specs</h2>
     <div class="form-grid">
       <label>
@@ -86,23 +96,23 @@
       </label>
       <label>
         <span>Rough/base GHz</span>
-        <input name="advertised_clock_ghz" value="{{ host.advertised_clock_ghz }}" inputmode="decimal">
+        <input name="advertised_clock_ghz" value="{{ host.advertised_clock_ghz }}" type="number" min="0" step="0.1" inputmode="decimal">
       </label>
       <label>
         <span>Peak GHz</span>
-        <input name="boost_clock_ghz" value="{{ host.boost_clock_ghz }}" inputmode="decimal">
+        <input name="boost_clock_ghz" value="{{ host.boost_clock_ghz }}" type="number" min="0" step="0.1" inputmode="decimal">
       </label>
       <label>
         <span>Max memory GB</span>
-        <input name="max_memory_gb" value="{{ host.max_memory_gb }}" inputmode="decimal">
+        <input name="max_memory_gb" value="{{ host.max_memory_gb }}" type="number" min="0" step="0.5" inputmode="decimal">
       </label>
       <label>
         <span>Memory speed MHz</span>
-        <input name="memory_speed_mhz" value="{{ host.memory_speed_mhz }}" inputmode="numeric">
+        <input name="memory_speed_mhz" value="{{ host.memory_speed_mhz }}" type="number" min="0" step="100" inputmode="numeric">
       </label>
       <label>
         <span>Benchmark score</span>
-        <input name="benchmark_score" value="{{ host.benchmark_score }}" inputmode="decimal">
+        <input name="benchmark_score" value="{{ host.benchmark_score }}" type="number" min="0" step="1" inputmode="decimal">
       </label>
       <label>
         <span>Storage type</span>
@@ -135,11 +145,11 @@
     </div>
   </section>
 
-  <section class="form-section">
+  <section class="form-section" id="plans">
     <div class="section-heading compact">
       <div>
         <h2>Plans and pricing</h2>
-        <p class="muted">Add each public plan separately. The public site uses these rows for price, RAM, and player filters.</p>
+        <p class="muted">Add each public plan separately. Price, RAM, storage, slots, and recommended players must be zero or higher.</p>
       </div>
       <button class="button" type="button" data-add-plan>Add plan</button>
     </div>
@@ -165,23 +175,23 @@
             </label>
             <label>
               <span>$/mo</span>
-              <input name="plan_price_monthly_usd" value="{{ plan.get('price_monthly_usd', '') }}" inputmode="decimal">
+              <input name="plan_price_monthly_usd" value="{{ plan.get('price_monthly_usd', '') }}" type="number" min="0" step="0.01" inputmode="decimal" data-plan-number>
             </label>
             <label>
               <span>RAM GB</span>
-              <input name="plan_ram_gb" value="{{ plan.get('ram_gb', '') }}" inputmode="decimal">
+              <input name="plan_ram_gb" value="{{ plan.get('ram_gb', '') }}" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number>
             </label>
             <label>
               <span>Slots</span>
-              <input name="plan_player_slots" value="{{ plan.get('player_slots', '') }}" inputmode="numeric">
+              <input name="plan_player_slots" value="{{ plan.get('player_slots', '') }}" type="number" min="0" step="1" inputmode="numeric" data-plan-number>
             </label>
             <label>
               <span>Recommended</span>
-              <input name="plan_recommended_players" value="{{ plan.get('recommended_players', '') }}" inputmode="numeric">
+              <input name="plan_recommended_players" value="{{ plan.get('recommended_players', '') }}" type="number" min="0" step="1" inputmode="numeric" data-plan-number>
             </label>
             <label>
               <span>Storage GB</span>
-              <input name="plan_storage_gb" value="{{ plan.get('storage_gb', '') }}" inputmode="decimal">
+              <input name="plan_storage_gb" value="{{ plan.get('storage_gb', '') }}" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number>
             </label>
             <label>
               <span>Plan URL</span>
@@ -198,11 +208,11 @@
       <template data-plan-template>
         <div class="plan-row" data-plan-row>
           <label><span>Plan</span><input name="plan_name" placeholder="Budget 4 GB"></label>
-          <label><span>$/mo</span><input name="plan_price_monthly_usd" inputmode="decimal"></label>
-          <label><span>RAM GB</span><input name="plan_ram_gb" inputmode="decimal"></label>
-          <label><span>Slots</span><input name="plan_player_slots" inputmode="numeric"></label>
-          <label><span>Recommended</span><input name="plan_recommended_players" inputmode="numeric"></label>
-          <label><span>Storage GB</span><input name="plan_storage_gb" inputmode="decimal"></label>
+          <label><span>$/mo</span><input name="plan_price_monthly_usd" type="number" min="0" step="0.01" inputmode="decimal" data-plan-number></label>
+          <label><span>RAM GB</span><input name="plan_ram_gb" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+          <label><span>Slots</span><input name="plan_player_slots" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
+          <label><span>Recommended</span><input name="plan_recommended_players" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
+          <label><span>Storage GB</span><input name="plan_storage_gb" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
           <label><span>Plan URL</span><input name="plan_plan_url" type="url"></label>
           <label><span>Notes</span><input name="plan_notes"></label>
           <button class="button danger icon-button" type="button" data-remove-plan title="Remove plan">Remove</button>
@@ -211,7 +221,7 @@
     </div>
   </section>
 
-  <section class="form-section">
+  <section class="form-section" id="features">
     <h2>Hosting features</h2>
     <div class="form-grid">
       <label>
@@ -245,7 +255,7 @@
     </div>
   </section>
 
-  <section class="form-section">
+  <section class="form-section" id="editorial">
     <h2>Editorial notes</h2>
     <div class="form-grid">
       <label>
@@ -275,9 +285,10 @@
     </div>
   </section>
 
-  <div class="form-actions">
+  <div class="form-actions sticky-save-bar">
     <button class="button primary" type="submit">Save host</button>
     <a class="button" href="{{ url_for('dashboard') }}">Cancel</a>
   </div>
 </form>
+</div>
 {% endblock %}

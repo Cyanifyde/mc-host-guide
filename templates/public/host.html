@@ -34,6 +34,33 @@
   </div>
 </section>
 
+<section class="quick-facts" aria-label="Host quick facts">
+  <div class="quick-fact">
+    <span>Starting price</span>
+    <strong>{% if host.starting_price_usd %}${{ host.starting_price_usd }}/mo{% else %}Unknown{% endif %}</strong>
+  </div>
+  <div class="quick-fact">
+    <span>Max plan RAM</span>
+    <strong>{% if host.max_plan_ram_gb %}{{ host.max_plan_ram_gb }} GB{% else %}Unknown{% endif %}</strong>
+  </div>
+  <div class="quick-fact">
+    <span>Player slots</span>
+    <strong>{{ host.max_plan_player_slots or "Unknown" }}</strong>
+  </div>
+  <div class="quick-fact">
+    <span>Regions</span>
+    <strong>{{ host.location_tags|join(", ") or "Unknown" }}</strong>
+  </div>
+  <div class="quick-fact">
+    <span>Support</span>
+    <strong>{{ host.support_channels|join(", ") or "Unknown" }}</strong>
+  </div>
+  <div class="quick-fact">
+    <span>Verified</span>
+    <strong>{{ host.last_verified or status_labels[host.status] }}</strong>
+  </div>
+</section>
+
 <section class="detail-grid">
   <article class="detail-panel">
     <h2>CPU and hardware</h2>
@@ -98,7 +125,7 @@
               <td>{{ plan.recommended_players or "-" }}</td>
               <td>{% if plan.storage_gb %}{{ plan.storage_gb }} GB{% else %}-{% endif %}</td>
               <td>{{ plan.notes or "-" }}</td>
-              <td>{% if plan.plan_url %}<a href="{{ plan.plan_url }}" rel="noreferrer">Open</a>{% endif %}</td>
+              <td>{% if plan.plan_url %}<a class="button table-action" href="{{ plan.plan_url }}" rel="noreferrer">Open</a>{% endif %}</td>
             </tr>
           {% endfor %}
         </tbody>
