@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Minecraft Host Directory</title>
-  <meta name="description" content="Manual Minecraft host recommendations with CPU, GHz, pricing, trust, and feature notes.">
+  <meta name="description" content="Manual Minecraft host recommendations with CPU, GHz, region, plan, RAM, player, support, trust, and feature notes.">
   <link rel="stylesheet" href="static/styles.css">
   <script src="static/site.js" defer></script>
 </head>
@@ -27,15 +27,15 @@
 <section class="utility-heading">
   <div>
     <h1>All hosts</h1>
-    <p>0 published hosts. Results update in the browser.</p>
+    <p>0 published hosts. Results update in the browser across regions, plans, support, and hardware specs.</p>
   </div>
 </section>
 
 <section class="utility-panel" data-directory-filters>
-  <div class="utility-controls">
+  <div class="utility-controls primary-controls">
     <label class="search-wide">
       <span>Search</span>
-      <input data-filter-search placeholder="host, CPU, tag, region">
+      <input data-filter-search placeholder="host, CPU, plan, region, support">
     </label>
     <label>
       <span>Sort</span>
@@ -43,7 +43,14 @@
         <option value="rank">Rank</option>
         <option value="name">Name</option>
         <option value="tier">Tier</option>
-        <option value="ghz-desc">GHz high to low</option>
+        <option value="price-asc">Lowest price</option>
+        <option value="plan-ram-desc">Plan RAM high to low</option>
+        <option value="players-desc">Player slots high to low</option>
+        <option value="base-ghz-desc">Base GHz high to low</option>
+        <option value="peak-ghz-desc">Peak GHz high to low</option>
+        <option value="max-memory-desc">Max memory high to low</option>
+        <option value="memory-speed-desc">Memory MHz high to low</option>
+        <option value="benchmark-desc">Benchmark high to low</option>
         <option value="verified-desc">Recently verified</option>
       </select>
     </label>
@@ -86,29 +93,81 @@
     </label>
   </div>
 
-  <div class="tag-cloud" aria-label="Tags">
-      <span class="muted">No tags yet.</span>
+  <details class="filter-details" open>
+    <summary>Specs, plans, and capacity</summary>
+    <div class="range-grid">
+      <label>
+        <span>Base GHz min</span>
+        <input data-range-key="baseGhz" data-range-bound="min" data-range-param="baseMin" type="number" step="0.1" inputmode="decimal">
+      </label>
+      <label>
+        <span>Peak GHz min</span>
+        <input data-range-key="peakGhz" data-range-bound="min" data-range-param="peakMin" type="number" step="0.1" inputmode="decimal">
+      </label>
+      <label>
+        <span>Max memory GB min</span>
+        <input data-range-key="maxMemory" data-range-bound="min" data-range-param="memMin" type="number" step="1" inputmode="numeric">
+      </label>
+      <label>
+        <span>Memory MHz min</span>
+        <input data-range-key="memorySpeed" data-range-bound="min" data-range-param="memSpeedMin" type="number" step="100" inputmode="numeric">
+      </label>
+      <label>
+        <span>Benchmark min</span>
+        <input data-range-key="benchmark" data-range-bound="min" data-range-param="benchMin" type="number" step="1" inputmode="numeric">
+      </label>
+      <label>
+        <span>Starting price max</span>
+        <input data-range-key="price" data-range-bound="max" data-range-param="priceMax" type="number" step="0.01" inputmode="decimal">
+      </label>
+      <label>
+        <span>Plan RAM GB min</span>
+        <input data-range-key="planRam" data-range-bound="min" data-range-param="planRamMin" type="number" step="1" inputmode="numeric">
+      </label>
+      <label>
+        <span>Player slots min</span>
+        <input data-range-key="players" data-range-bound="min" data-range-param="playersMin" type="number" step="1" inputmode="numeric">
+      </label>
+    </div>
+  </details>
+
+  <div class="filter-chip-groups">
+    <div class="tag-cloud" aria-label="Tags">
+      <span class="chip-label">Tags</span>
+        <span class="muted">No tags yet.</span>
+    </div>
+    <div class="tag-cloud" aria-label="Regions">
+      <span class="chip-label">Regions</span>
+        <span class="muted">No regions yet.</span>
+    </div>
+    <div class="tag-cloud" aria-label="Support channels">
+      <span class="chip-label">Support</span>
+        <span class="muted">No support tags yet.</span>
+    </div>
   </div>
 
+  <div class="active-filters" data-active-filters aria-label="Active filters"></div>
+
   <div class="result-line">
-    <span data-result-count>0</span> matching hosts
+    <span><strong data-result-count aria-live="polite">0</strong> matching hosts</span>
     <button class="link-button" type="button" data-clear-filters>Clear filters</button>
   </div>
 </section>
 
 <section class="directory-table-shell">
   <table class="directory-table" data-directory-list>
+    <caption class="sr-only">Minecraft hosting providers with specs, regions, plans, and support details</caption>
     <thead>
       <tr>
-        <th>Rank</th>
-        <th>Host</th>
-        <th>Tier</th>
-        <th>Tags</th>
-        <th>CPU / GHz</th>
-        <th>Location</th>
-        <th>Panel</th>
-        <th>Status</th>
-        <th></th>
+        <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="rank">Rank</button></th>
+        <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="name">Host</button></th>
+        <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="tier">Tier</button></th>
+        <th scope="col">Regions</th>
+        <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="base-ghz-desc">Hardware</button></th>
+        <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="price-asc">Plans</button></th>
+        <th scope="col">Support</th>
+        <th scope="col">Status</th>
+        <th scope="col"></th>
       </tr>
     </thead>
     <tbody>
@@ -116,7 +175,7 @@
   </table>
   <div class="empty-public" data-empty-results hidden>
     <strong>No matching hosts.</strong>
-    <span>Clear filters or use fewer tags.</span>
+    <span>Clear filters or use fewer tags/spec ranges.</span>
   </div>
 </section>  </main>
 </body>

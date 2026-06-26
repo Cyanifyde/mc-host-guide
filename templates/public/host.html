@@ -17,6 +17,11 @@
           {% for tag in host.tags %}<span class="pill">{{ tag }}</span>{% endfor %}
         </div>
       {% endif %}
+      {% if host.location_tags %}
+        <div class="pill-row">
+          {% for tag in host.location_tags %}<span class="pill location-pill">{{ tag }}</span>{% endfor %}
+        </div>
+      {% endif %}
     </div>
   </div>
   <div class="form-actions">
@@ -35,11 +40,15 @@
     <dl class="spec-list expanded">
       <div><dt>CPU model</dt><dd>{{ host.cpu_model or "Unknown" }}</dd></div>
       <div><dt>CPU vendor</dt><dd>{{ host.cpu_vendor or "Unknown" }}</dd></div>
-      <div><dt>Advertised GHz</dt><dd>{{ host.advertised_clock_ghz or "Unknown" }}</dd></div>
-      <div><dt>Boost GHz</dt><dd>{{ host.boost_clock_ghz or "Unknown" }}</dd></div>
+      <div><dt>Base GHz</dt><dd>{{ host.advertised_clock_ghz or "Unknown" }}</dd></div>
+      <div><dt>Peak GHz</dt><dd>{{ host.boost_clock_ghz or "Unknown" }}</dd></div>
+      <div><dt>Max memory</dt><dd>{% if host.max_memory_gb %}{{ host.max_memory_gb }} GB{% else %}Unknown{% endif %}</dd></div>
+      <div><dt>Memory speed</dt><dd>{% if host.memory_speed_mhz %}{{ host.memory_speed_mhz }} MHz{% else %}Unknown{% endif %}</dd></div>
+      <div><dt>Benchmark</dt><dd>{{ host.benchmark_score or "Unknown" }}</dd></div>
       <div><dt>Storage</dt><dd>{{ host.storage_type or "Unknown" }}</dd></div>
       <div><dt>Locations</dt><dd>{{ host.locations|join(", ") or "Unknown" }}</dd></div>
     </dl>
+    {% if host.benchmark_notes %}<p>{{ host.benchmark_notes }}</p>{% endif %}
     {% if host.cpu_notes %}<p>{{ host.cpu_notes }}</p>{% endif %}
     {% if host.ram_notes %}<p>{{ host.ram_notes }}</p>{% endif %}
   </article>
@@ -49,6 +58,7 @@
       <div><dt>Panel</dt><dd>{{ host.panel or "Unknown" }}</dd></div>
       <div><dt>DDoS</dt><dd>{{ host.ddos_protection or "Unknown" }}</dd></div>
       <div><dt>Modpacks</dt><dd>{{ host.modpack_support or "Unknown" }}</dd></div>
+      <div><dt>Support</dt><dd>{{ host.support_channels|join(", ") or "Unknown" }}</dd></div>
       <div><dt>Status</dt><dd>{{ status_labels[host.status] }}</dd></div>
     </dl>
     {% if host.server_types %}
@@ -56,8 +66,47 @@
         {% for item in host.server_types %}<span class="pill">{{ item }}</span>{% endfor %}
       </div>
     {% endif %}
+    {% if host.support_notes %}<p>{{ host.support_notes }}</p>{% endif %}
     {% if host.price_notes %}<p>{{ host.price_notes }}</p>{% endif %}
   </article>
+</section>
+
+<section class="detail-panel">
+  <h2>Plans</h2>
+  {% if host.plans %}
+    <div class="table-shell inline-table">
+      <table class="host-table plan-table">
+        <thead>
+          <tr>
+            <th>Plan</th>
+            <th>$/mo</th>
+            <th>RAM</th>
+            <th>Slots</th>
+            <th>Recommended</th>
+            <th>Storage</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for plan in host.plans %}
+            <tr>
+              <td>{{ plan.name or "Plan" }}</td>
+              <td>{% if plan.price_monthly_usd %}${{ plan.price_monthly_usd }}{% else %}-{% endif %}</td>
+              <td>{% if plan.ram_gb %}{{ plan.ram_gb }} GB{% else %}-{% endif %}</td>
+              <td>{{ plan.player_slots or "-" }}</td>
+              <td>{{ plan.recommended_players or "-" }}</td>
+              <td>{% if plan.storage_gb %}{{ plan.storage_gb }} GB{% else %}-{% endif %}</td>
+              <td>{{ plan.notes or "-" }}</td>
+              <td>{% if plan.plan_url %}<a href="{{ plan.plan_url }}" rel="noreferrer">Open</a>{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No plan rows recorded.</p>
+  {% endif %}
 </section>
 
 <section class="detail-grid">

@@ -54,6 +54,8 @@ STATUS_LABELS = {
 LIST_FIELDS = [
     "category_picks",
     "tags",
+    "location_tags",
+    "support_channels",
     "locations",
     "server_types",
     "source_urls",
@@ -71,12 +73,17 @@ TEXT_FIELDS = [
     "cpu_vendor",
     "advertised_clock_ghz",
     "boost_clock_ghz",
+    "max_memory_gb",
+    "memory_speed_mhz",
+    "benchmark_score",
+    "benchmark_notes",
     "cpu_notes",
     "ram_notes",
     "storage_type",
     "panel",
     "ddos_protection",
     "modpack_support",
+    "support_notes",
     "price_notes",
     "last_verified",
     "status",
@@ -96,6 +103,10 @@ DEFAULT_HOST: dict[str, Any] = {
     "cpu_vendor": "",
     "advertised_clock_ghz": "",
     "boost_clock_ghz": "",
+    "max_memory_gb": "",
+    "memory_speed_mhz": "",
+    "benchmark_score": "",
+    "benchmark_notes": "",
     "cpu_notes": "",
     "ram_notes": "",
     "storage_type": "",
@@ -104,6 +115,8 @@ DEFAULT_HOST: dict[str, Any] = {
     "ddos_protection": "",
     "modpack_support": "",
     "server_types": [],
+    "support_channels": [],
+    "support_notes": "",
     "price_notes": "",
     "last_verified": "",
     "source_urls": [],
@@ -113,10 +126,29 @@ DEFAULT_HOST: dict[str, Any] = {
     "rank": 999,
     "category_picks": [],
     "tags": [],
+    "location_tags": [],
     "pros": [],
     "cons": [],
     "caveats": "",
+    "plans": [],
+    "plan_count": 0,
+    "starting_price_usd": "",
+    "lowest_price_per_gb_usd": "",
+    "max_plan_ram_gb": "",
+    "max_plan_player_slots": "",
+    "max_recommended_players": "",
 }
+
+PLAN_TEXT_FIELDS = [
+    "name",
+    "price_monthly_usd",
+    "ram_gb",
+    "player_slots",
+    "recommended_players",
+    "storage_gb",
+    "plan_url",
+    "notes",
+]
 
 
 def ensure_data_file() -> None:
@@ -154,6 +186,10 @@ def normalize_host(host: dict[str, Any]) -> dict[str, Any]:
         category for category in clean["category_picks"] if category in CATEGORY_OPTIONS
     ]
     clean["tags"] = sorted({tag.lower() for tag in clean["tags"]})
+    clean["location_tags"] = sorted({tag.lower() for tag in clean["location_tags"]})
+    clean["support_channels"] = sorted({tag.lower() for tag in clean["support_channels"]})
+    clean["plans"] = normalize_plans(host.get("plans", []))
+    apply_plan_summary(clean)
 
     tier = clean.get("recommendation_tier") or "unreviewed"
     clean["recommendation_tier"] = tier if tier in TIER_OPTIONS else "unreviewed"
@@ -184,6 +220,63 @@ def normalize_list(value: Any) -> list[str]:
     else:
         parts = []
     return [str(part).strip() for part in parts if str(part).strip()]
+
+
+def normalize_plans(value: Any) -> list[dict[str, str]]:
+    if not isinstance(value, list):
+        return []
+
+    plans: list[dict[str, str]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        plan = {field: str(item.get(field, "") or "").strip() for field in PLAN_TEXT_FIELDS}
+        if any(plan.values()):
+            plans.append(plan)
+    return plans
+
+
+def numeric_value(value: Any) -> float | None:
+    if value in (None, ""):
+        return None
+    try:
+        return float(str(value).replace("$", "").replace(",", "").strip())
+    except ValueError:
+        return None
+
+
+def format_metric(value: float | None) -> str:
+    if value is None:
+        return ""
+    if value.is_integer():
+        return str(int(value))
+    return f"{value:.2f}".rstrip("0").rstrip(".")
+
+
+def apply_plan_summary(host: dict[str, Any]) -> None:
+    prices = [numeric_value(plan.get("price_monthly_usd")) for plan in host["plans"]]
+    rams = [numeric_value(plan.get("ram_gb")) for plan in host["plans"]]
+    slots = [numeric_value(plan.get("player_slots")) for plan in host["plans"]]
+    recommended = [numeric_value(plan.get("recommended_players")) for plan in host["plans"]]
+
+    prices = [value for value in prices if value is not None]
+    rams = [value for value in rams if value is not None]
+    slots = [value for value in slots if value is not None]
+    recommended = [value for value in recommended if value is not None]
+
+    price_per_gb = []
+    for plan in host["plans"]:
+        price = numeric_value(plan.get("price_monthly_usd"))
+        ram = numeric_value(plan.get("ram_gb"))
+        if price is not None and ram and ram > 0:
+            price_per_gb.append(price / ram)
+
+    host["plan_count"] = len(host["plans"])
+    host["starting_price_usd"] = format_metric(min(prices) if prices else None)
+    host["lowest_price_per_gb_usd"] = format_metric(min(price_per_gb) if price_per_gb else None)
+    host["max_plan_ram_gb"] = format_metric(max(rams) if rams else None)
+    host["max_plan_player_slots"] = format_metric(max(slots) if slots else None)
+    host["max_recommended_players"] = format_metric(max(recommended) if recommended else None)
 
 
 def sort_hosts(hosts: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -223,4 +316,18 @@ def all_tags(hosts: list[dict[str, Any]]) -> list[str]:
     tags: set[str] = set()
     for host in hosts:
         tags.update(host.get("tags", []))
+    return sorted(tags)
+
+
+def all_location_tags(hosts: list[dict[str, Any]]) -> list[str]:
+    tags: set[str] = set()
+    for host in hosts:
+        tags.update(host.get("location_tags", []))
+    return sorted(tags)
+
+
+def all_support_channels(hosts: list[dict[str, Any]]) -> list[str]:
+    tags: set[str] = set()
+    for host in hosts:
+        tags.update(host.get("support_channels", []))
     return sorted(tags)

@@ -23,6 +23,8 @@ from host_store import (
     STATUS_OPTIONS,
     TIER_LABELS,
     TIER_OPTIONS,
+    all_location_tags,
+    all_support_channels,
     all_tags,
     find_host,
     load_hosts,
@@ -59,6 +61,8 @@ def dashboard():
     category = request.args.get("category", "").strip()
     status = request.args.get("status", "").strip()
     tag = request.args.get("tag", "").strip().lower()
+    location_tag = request.args.get("location_tag", "").strip().lower()
+    support = request.args.get("support", "").strip().lower()
 
     filtered = hosts
     if query:
@@ -72,8 +76,20 @@ def dashboard():
                     host.get("summary", ""),
                     host.get("cpu_model", ""),
                     host.get("cpu_vendor", ""),
+                    host.get("advertised_clock_ghz", ""),
+                    host.get("boost_clock_ghz", ""),
+                    host.get("max_memory_gb", ""),
+                    host.get("memory_speed_mhz", ""),
+                    host.get("benchmark_score", ""),
+                    host.get("support_notes", ""),
                     " ".join(host.get("tags", [])),
+                    " ".join(host.get("location_tags", [])),
+                    " ".join(host.get("support_channels", [])),
                     " ".join(host.get("locations", [])),
+                    " ".join(
+                        " ".join(str(value) for value in plan.values())
+                        for plan in host.get("plans", [])
+                    ),
                 ]
             ).lower()
         ]
@@ -85,6 +101,12 @@ def dashboard():
         filtered = [host for host in filtered if host.get("status") == status]
     if tag:
         filtered = [host for host in filtered if tag in host.get("tags", [])]
+    if location_tag:
+        filtered = [
+            host for host in filtered if location_tag in host.get("location_tags", [])
+        ]
+    if support:
+        filtered = [host for host in filtered if support in host.get("support_channels", [])]
 
     stats = {
         "total": len(hosts),
@@ -101,7 +123,17 @@ def dashboard():
         hosts=filtered,
         stats=stats,
         all_tags=all_tags(hosts),
-        filters={"q": query, "tier": tier, "category": category, "status": status, "tag": tag},
+        all_location_tags=all_location_tags(hosts),
+        all_support_channels=all_support_channels(hosts),
+        filters={
+            "q": query,
+            "tier": tier,
+            "category": category,
+            "status": status,
+            "tag": tag,
+            "location_tag": location_tag,
+            "support": support,
+        },
     )
 
 
@@ -224,12 +256,17 @@ def host_from_form(existing_ids: set[str], existing: dict | None = None) -> dict
         "cpu_vendor",
         "advertised_clock_ghz",
         "boost_clock_ghz",
+        "max_memory_gb",
+        "memory_speed_mhz",
+        "benchmark_score",
+        "benchmark_notes",
         "cpu_notes",
         "ram_notes",
         "storage_type",
         "panel",
         "ddos_protection",
         "modpack_support",
+        "support_notes",
         "price_notes",
         "last_verified",
         "status",
@@ -259,12 +296,39 @@ def host_from_form(existing_ids: set[str], existing: dict | None = None) -> dict
         if category in CATEGORY_OPTIONS
     ]
     host["locations"] = normalize_list(request.form.get("locations", ""))
+    host["location_tags"] = normalize_list(request.form.get("location_tags", ""))
     host["tags"] = normalize_list(request.form.get("tags", ""))
+    host["support_channels"] = normalize_list(request.form.get("support_channels", ""))
     host["server_types"] = normalize_list(request.form.get("server_types", ""))
     host["source_urls"] = normalize_list(request.form.get("source_urls", ""))
     host["pros"] = normalize_list(request.form.get("pros", ""))
     host["cons"] = normalize_list(request.form.get("cons", ""))
+    host["plans"] = plans_from_form()
     return host
+
+
+def plans_from_form() -> list[dict[str, str]]:
+    fields = [
+        "name",
+        "price_monthly_usd",
+        "ram_gb",
+        "player_slots",
+        "recommended_players",
+        "storage_gb",
+        "plan_url",
+        "notes",
+    ]
+    posted = {field: request.form.getlist(f"plan_{field}") for field in fields}
+    length = max((len(values) for values in posted.values()), default=0)
+    plans = []
+    for index in range(length):
+        plan = {
+            field: (posted[field][index].strip() if index < len(posted[field]) else "")
+            for field in fields
+        }
+        if any(plan.values()):
+            plans.append(plan)
+    return plans
 
 
 if __name__ == "__main__":

@@ -5,7 +5,16 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from host_store import CATEGORY_LABELS, ROOT_DIR, STATUS_LABELS, TIER_LABELS, all_tags, load_hosts
+from host_store import (
+    CATEGORY_LABELS,
+    ROOT_DIR,
+    STATUS_LABELS,
+    TIER_LABELS,
+    all_location_tags,
+    all_support_channels,
+    all_tags,
+    load_hosts,
+)
 
 DOCS_DIR = ROOT_DIR / "docs"
 TEMPLATE_DIR = ROOT_DIR / "templates" / "public"
@@ -44,6 +53,8 @@ def build_site() -> dict[str, int]:
         if host.get("recommendation_tier") in {"top_pick", "recommended", "situational"}
     ]
     available_tags = all_tags(public_hosts)
+    available_location_tags = all_location_tags(public_hosts)
+    available_support_channels = all_support_channels(public_hosts)
 
     render(
         env,
@@ -52,6 +63,8 @@ def build_site() -> dict[str, int]:
         hosts=public_hosts,
         top_hosts=top_hosts[:8],
         all_tags=available_tags,
+        all_location_tags=available_location_tags,
+        all_support_channels=available_support_channels,
         root_prefix="",
         active_page="home",
         **common,
@@ -62,6 +75,8 @@ def build_site() -> dict[str, int]:
         DOCS_DIR / "directory.html",
         hosts=public_hosts,
         all_tags=available_tags,
+        all_location_tags=available_location_tags,
+        all_support_channels=available_support_channels,
         root_prefix="",
         active_page="directory",
         **common,

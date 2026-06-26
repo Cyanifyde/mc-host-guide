@@ -85,12 +85,24 @@
         <input name="cpu_vendor" value="{{ host.cpu_vendor }}" placeholder="AMD / Intel">
       </label>
       <label>
-        <span>Advertised GHz</span>
+        <span>Rough/base GHz</span>
         <input name="advertised_clock_ghz" value="{{ host.advertised_clock_ghz }}" inputmode="decimal">
       </label>
       <label>
-        <span>Boost GHz</span>
+        <span>Peak GHz</span>
         <input name="boost_clock_ghz" value="{{ host.boost_clock_ghz }}" inputmode="decimal">
+      </label>
+      <label>
+        <span>Max memory GB</span>
+        <input name="max_memory_gb" value="{{ host.max_memory_gb }}" inputmode="decimal">
+      </label>
+      <label>
+        <span>Memory speed MHz</span>
+        <input name="memory_speed_mhz" value="{{ host.memory_speed_mhz }}" inputmode="numeric">
+      </label>
+      <label>
+        <span>Benchmark score</span>
+        <input name="benchmark_score" value="{{ host.benchmark_score }}" inputmode="decimal">
       </label>
       <label>
         <span>Storage type</span>
@@ -104,6 +116,14 @@
         <span>Locations</span>
         <textarea name="locations" rows="3">{{ host.locations|join('\n') }}</textarea>
       </label>
+      <label>
+        <span>Location tags</span>
+        <textarea name="location_tags" rows="3" placeholder="us-east&#10;eu-west&#10;asia">{{ host.location_tags|join('\n') }}</textarea>
+      </label>
+      <label class="span-2">
+        <span>Benchmark notes</span>
+        <textarea name="benchmark_notes" rows="2">{{ host.benchmark_notes }}</textarea>
+      </label>
       <label class="span-2">
         <span>CPU notes</span>
         <textarea name="cpu_notes" rows="3">{{ host.cpu_notes }}</textarea>
@@ -112,6 +132,82 @@
         <span>RAM notes</span>
         <textarea name="ram_notes" rows="3">{{ host.ram_notes }}</textarea>
       </label>
+    </div>
+  </section>
+
+  <section class="form-section">
+    <div class="section-heading compact">
+      <div>
+        <h2>Plans and pricing</h2>
+        <p class="muted">Add each public plan separately. The public site uses these rows for price, RAM, and player filters.</p>
+      </div>
+      <button class="button" type="button" data-add-plan>Add plan</button>
+    </div>
+    <div class="plan-editor" data-plan-editor>
+      <div class="plan-row plan-row-head" aria-hidden="true">
+        <span>Plan</span>
+        <span>$/mo</span>
+        <span>RAM GB</span>
+        <span>Slots</span>
+        <span>Recommended</span>
+        <span>Storage GB</span>
+        <span>Plan URL</span>
+        <span>Notes</span>
+        <span></span>
+      </div>
+      <div class="plan-rows" data-plan-rows>
+        {% set plans = host.plans if host.plans else [{}] %}
+        {% for plan in plans %}
+          <div class="plan-row" data-plan-row>
+            <label>
+              <span>Plan</span>
+              <input name="plan_name" value="{{ plan.get('name', '') }}" placeholder="Budget 4 GB">
+            </label>
+            <label>
+              <span>$/mo</span>
+              <input name="plan_price_monthly_usd" value="{{ plan.get('price_monthly_usd', '') }}" inputmode="decimal">
+            </label>
+            <label>
+              <span>RAM GB</span>
+              <input name="plan_ram_gb" value="{{ plan.get('ram_gb', '') }}" inputmode="decimal">
+            </label>
+            <label>
+              <span>Slots</span>
+              <input name="plan_player_slots" value="{{ plan.get('player_slots', '') }}" inputmode="numeric">
+            </label>
+            <label>
+              <span>Recommended</span>
+              <input name="plan_recommended_players" value="{{ plan.get('recommended_players', '') }}" inputmode="numeric">
+            </label>
+            <label>
+              <span>Storage GB</span>
+              <input name="plan_storage_gb" value="{{ plan.get('storage_gb', '') }}" inputmode="decimal">
+            </label>
+            <label>
+              <span>Plan URL</span>
+              <input name="plan_plan_url" value="{{ plan.get('plan_url', '') }}" type="url">
+            </label>
+            <label>
+              <span>Notes</span>
+              <input name="plan_notes" value="{{ plan.get('notes', '') }}">
+            </label>
+            <button class="button danger icon-button" type="button" data-remove-plan title="Remove plan">Remove</button>
+          </div>
+        {% endfor %}
+      </div>
+      <template data-plan-template>
+        <div class="plan-row" data-plan-row>
+          <label><span>Plan</span><input name="plan_name" placeholder="Budget 4 GB"></label>
+          <label><span>$/mo</span><input name="plan_price_monthly_usd" inputmode="decimal"></label>
+          <label><span>RAM GB</span><input name="plan_ram_gb" inputmode="decimal"></label>
+          <label><span>Slots</span><input name="plan_player_slots" inputmode="numeric"></label>
+          <label><span>Recommended</span><input name="plan_recommended_players" inputmode="numeric"></label>
+          <label><span>Storage GB</span><input name="plan_storage_gb" inputmode="decimal"></label>
+          <label><span>Plan URL</span><input name="plan_plan_url" type="url"></label>
+          <label><span>Notes</span><input name="plan_notes"></label>
+          <button class="button danger icon-button" type="button" data-remove-plan title="Remove plan">Remove</button>
+        </div>
+      </template>
     </div>
   </section>
 
@@ -131,8 +227,16 @@
         <input name="modpack_support" value="{{ host.modpack_support }}">
       </label>
       <label>
+        <span>Support channels</span>
+        <textarea name="support_channels" rows="3" placeholder="discord&#10;tickets&#10;email">{{ host.support_channels|join('\n') }}</textarea>
+      </label>
+      <label>
         <span>Server types</span>
         <textarea name="server_types" rows="3">{{ host.server_types|join('\n') }}</textarea>
+      </label>
+      <label class="span-2">
+        <span>Support notes</span>
+        <textarea name="support_notes" rows="3">{{ host.support_notes }}</textarea>
       </label>
       <label class="span-2">
         <span>Price notes</span>

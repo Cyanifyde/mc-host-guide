@@ -31,7 +31,18 @@ If automatic Pages configuration fails, open the GitHub repo settings and choose
 
 ## Data model
 
-Rankings are manual. Each host has a tier, drag-saved rank, category picks, tags, CPU/GHz fields, hosting feature notes, source URLs, status, and trust notes.
+Rankings are manual. Each host has a tier, drag-saved rank, category picks, tags, location tags, CPU/GHz/memory/benchmark fields, structured plan rows, support channels, hosting feature notes, source URLs, status, and trust notes.
+
+Plan rows support separate public offers with:
+
+- plan name
+- monthly USD price
+- RAM GB
+- player slots
+- recommended players
+- storage GB
+- plan URL
+- notes
 
 Tier values:
 

@@ -6,7 +6,7 @@
     <p class="eyebrow">Ordering</p>
     <h1>Drag reorder</h1>
   </div>
-  <button class="button primary" type="button" data-save-order>Save order</button>
+  <button class="button primary" type="button" data-save-order data-reorder-endpoint="{{ url_for('reorder_hosts') }}">Save order</button>
 </section>
 
 <section class="reorder-shell">
@@ -21,7 +21,16 @@
         <span class="reorder-rank">{{ loop.index }}</span>
         <div>
           <strong>{{ host.name }}</strong>
-          <small>{{ tier_labels[host.recommendation_tier] }}{% if host.tags %} - {{ host.tags|join(", ") }}{% endif %}</small>
+          <small>
+            {{ tier_labels[host.recommendation_tier] }}
+            - from {% if host.starting_price_usd %}${{ host.starting_price_usd }}/mo{% else %}unknown price{% endif %}
+            - max {{ host.max_plan_ram_gb or "-" }} GB RAM
+            - {{ host.max_plan_player_slots or "-" }} slots
+            - base {{ host.advertised_clock_ghz or "-" }} / peak {{ host.boost_clock_ghz or "-" }} GHz
+          </small>
+          {% if host.location_tags or host.support_channels %}
+            <small>{{ host.location_tags|join(", ") }}{% if host.location_tags and host.support_channels %} - {% endif %}{{ host.support_channels|join(", ") }}</small>
+          {% endif %}
         </div>
       </li>
     {% else %}

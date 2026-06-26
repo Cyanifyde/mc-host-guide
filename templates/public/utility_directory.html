@@ -1,8 +1,8 @@
 <section class="utility-panel" data-directory-filters>
-  <div class="utility-controls">
+  <div class="utility-controls primary-controls">
     <label class="search-wide">
       <span>Search</span>
-      <input data-filter-search placeholder="host, CPU, tag, region">
+      <input data-filter-search placeholder="host, CPU, plan, region, support">
     </label>
     <label>
       <span>Sort</span>
@@ -10,7 +10,14 @@
         <option value="rank">Rank</option>
         <option value="name">Name</option>
         <option value="tier">Tier</option>
-        <option value="ghz-desc">GHz high to low</option>
+        <option value="price-asc">Lowest price</option>
+        <option value="plan-ram-desc">Plan RAM high to low</option>
+        <option value="players-desc">Player slots high to low</option>
+        <option value="base-ghz-desc">Base GHz high to low</option>
+        <option value="peak-ghz-desc">Peak GHz high to low</option>
+        <option value="max-memory-desc">Max memory high to low</option>
+        <option value="memory-speed-desc">Memory MHz high to low</option>
+        <option value="benchmark-desc">Benchmark high to low</option>
         <option value="verified-desc">Recently verified</option>
       </select>
     </label>
@@ -43,72 +50,175 @@
     </label>
   </div>
 
-  <div class="tag-cloud" aria-label="Tags">
-    {% for tag in all_tags %}
-      <button class="tag-chip" type="button" data-tag-filter="{{ tag }}">{{ tag }}</button>
-    {% else %}
-      <span class="muted">No tags yet.</span>
-    {% endfor %}
+  <details class="filter-details" open>
+    <summary>Specs, plans, and capacity</summary>
+    <div class="range-grid">
+      <label>
+        <span>Base GHz min</span>
+        <input data-range-key="baseGhz" data-range-bound="min" data-range-param="baseMin" type="number" step="0.1" inputmode="decimal">
+      </label>
+      <label>
+        <span>Peak GHz min</span>
+        <input data-range-key="peakGhz" data-range-bound="min" data-range-param="peakMin" type="number" step="0.1" inputmode="decimal">
+      </label>
+      <label>
+        <span>Max memory GB min</span>
+        <input data-range-key="maxMemory" data-range-bound="min" data-range-param="memMin" type="number" step="1" inputmode="numeric">
+      </label>
+      <label>
+        <span>Memory MHz min</span>
+        <input data-range-key="memorySpeed" data-range-bound="min" data-range-param="memSpeedMin" type="number" step="100" inputmode="numeric">
+      </label>
+      <label>
+        <span>Benchmark min</span>
+        <input data-range-key="benchmark" data-range-bound="min" data-range-param="benchMin" type="number" step="1" inputmode="numeric">
+      </label>
+      <label>
+        <span>Starting price max</span>
+        <input data-range-key="price" data-range-bound="max" data-range-param="priceMax" type="number" step="0.01" inputmode="decimal">
+      </label>
+      <label>
+        <span>Plan RAM GB min</span>
+        <input data-range-key="planRam" data-range-bound="min" data-range-param="planRamMin" type="number" step="1" inputmode="numeric">
+      </label>
+      <label>
+        <span>Player slots min</span>
+        <input data-range-key="players" data-range-bound="min" data-range-param="playersMin" type="number" step="1" inputmode="numeric">
+      </label>
+    </div>
+  </details>
+
+  <div class="filter-chip-groups">
+    <div class="tag-cloud" aria-label="Tags">
+      <span class="chip-label">Tags</span>
+      {% for tag in all_tags %}
+        <button class="tag-chip" type="button" data-tag-filter="{{ tag }}" aria-pressed="false">{{ tag }}</button>
+      {% else %}
+        <span class="muted">No tags yet.</span>
+      {% endfor %}
+    </div>
+    <div class="tag-cloud" aria-label="Regions">
+      <span class="chip-label">Regions</span>
+      {% for tag in all_location_tags %}
+        <button class="tag-chip location-chip" type="button" data-location-filter="{{ tag }}" aria-pressed="false">{{ tag }}</button>
+      {% else %}
+        <span class="muted">No regions yet.</span>
+      {% endfor %}
+    </div>
+    <div class="tag-cloud" aria-label="Support channels">
+      <span class="chip-label">Support</span>
+      {% for channel in all_support_channels %}
+        <button class="tag-chip support-chip" type="button" data-support-filter="{{ channel }}" aria-pressed="false">{{ channel }}</button>
+      {% else %}
+        <span class="muted">No support tags yet.</span>
+      {% endfor %}
+    </div>
   </div>
 
+  <div class="active-filters" data-active-filters aria-label="Active filters"></div>
+
   <div class="result-line">
-    <span data-result-count>{{ hosts|length }}</span> matching hosts
+    <span><strong data-result-count aria-live="polite">{{ hosts|length }}</strong> matching hosts</span>
     <button class="link-button" type="button" data-clear-filters>Clear filters</button>
   </div>
 </section>
 
 <section class="directory-table-shell">
   <table class="directory-table" data-directory-list>
+    <caption class="sr-only">Minecraft hosting providers with specs, regions, plans, and support details</caption>
     <thead>
       <tr>
-        <th>Rank</th>
-        <th>Host</th>
-        <th>Tier</th>
-        <th>Tags</th>
-        <th>CPU / GHz</th>
-        <th>Location</th>
-        <th>Panel</th>
-        <th>Status</th>
-        <th></th>
+        <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="rank">Rank</button></th>
+        <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="name">Host</button></th>
+        <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="tier">Tier</button></th>
+        <th scope="col">Regions</th>
+        <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="base-ghz-desc">Hardware</button></th>
+        <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="price-asc">Plans</button></th>
+        <th scope="col">Support</th>
+        <th scope="col">Status</th>
+        <th scope="col"></th>
       </tr>
     </thead>
     <tbody>
       {% for host in hosts %}
         <tr class="host-row"
-            data-search="{{ host.name }} {{ host.summary }} {{ host.cpu_model }} {{ host.cpu_vendor }} {{ host.locations|join(' ') }} {{ host.tags|join(' ') }} {{ host.category_picks|join(' ') }}"
+            data-search="{{ host.name }} {{ host.summary }} {{ host.cpu_model }} {{ host.cpu_vendor }} {{ host.locations|join(' ') }} {{ host.location_tags|join(' ') }} {{ host.tags|join(' ') }} {{ host.support_channels|join(' ') }} {{ host.support_notes }} {{ host.category_picks|join(' ') }} {% for plan in host.plans %} {{ plan.name }} {{ plan.price_monthly_usd }} {{ plan.ram_gb }} {{ plan.player_slots }} {{ plan.notes }} {% endfor %}"
             data-name="{{ host.name|lower }}"
             data-rank="{{ host.rank }}"
             data-tier="{{ host.recommendation_tier }}"
             data-tier-order="{% if host.recommendation_tier == 'top_pick' %}1{% elif host.recommendation_tier == 'recommended' %}2{% elif host.recommendation_tier == 'situational' %}3{% elif host.recommendation_tier == 'avoid' %}4{% else %}5{% endif %}"
             data-status="{{ host.status }}"
-            data-ghz="{{ host.advertised_clock_ghz or host.boost_clock_ghz or 0 }}"
+            data-base-ghz="{{ host.advertised_clock_ghz }}"
+            data-peak-ghz="{{ host.boost_clock_ghz }}"
+            data-max-memory="{{ host.max_memory_gb }}"
+            data-memory-speed="{{ host.memory_speed_mhz }}"
+            data-benchmark="{{ host.benchmark_score }}"
+            data-price="{{ host.starting_price_usd }}"
+            data-plan-ram="{{ host.max_plan_ram_gb }}"
+            data-players="{{ host.max_plan_player_slots }}"
+            data-recommended-players="{{ host.max_recommended_players }}"
             data-verified="{{ host.last_verified }}"
             data-tags="{{ host.tags|join(' ') }}"
+            data-location-tags="{{ host.location_tags|join(' ') }}"
+            data-support="{{ host.support_channels|join(' ') }}"
             data-categories="{{ host.category_picks|join(' ') }}">
-          <td class="rank-cell">{{ host.rank }}</td>
-          <td>
+          <td data-label="Rank" class="rank-cell">{{ host.rank }}</td>
+          <td data-label="Host">
             <a class="host-name-link" href="{{ root_prefix }}hosts/{{ host.id }}.html">{{ host.name }}</a>
             <small>{{ host.summary or "No summary" }}</small>
+            <div class="pill-row compact-pills">
+              {% for tag in host.tags[:4] %}
+                <span class="pill">{{ tag }}</span>
+              {% endfor %}
+            </div>
           </td>
-          <td><span class="badge tier-{{ host.recommendation_tier }}">{{ tier_labels[host.recommendation_tier] }}</span></td>
-          <td>
-            {% for tag in host.tags %}
-              <span class="pill">{{ tag }}</span>
+          <td data-label="Tier"><span class="badge tier-{{ host.recommendation_tier }}">{{ tier_labels[host.recommendation_tier] }}</span></td>
+          <td data-label="Regions">
+            {% for tag in host.location_tags %}
+              <span class="pill location-pill">{{ tag }}</span>
             {% else %}
-              <span class="muted">-</span>
+              <span class="muted">Unknown</span>
             {% endfor %}
           </td>
-          <td>{{ host.cpu_model or "Unknown" }}{% if host.advertised_clock_ghz %} / {{ host.advertised_clock_ghz }} GHz{% endif %}</td>
-          <td>{{ host.locations|join(", ") or "Unknown" }}</td>
-          <td>{{ host.panel or "Unknown" }}</td>
-          <td>{{ status_labels[host.status] }}</td>
-          <td><a href="{{ root_prefix }}hosts/{{ host.id }}.html">Open</a></td>
+          <td data-label="Hardware">
+            <strong>{{ host.cpu_model or "Unknown CPU" }}</strong>
+            <dl class="mini-specs">
+              <div><dt>Base</dt><dd>{{ host.advertised_clock_ghz or "-" }} GHz</dd></div>
+              <div><dt>Peak</dt><dd>{{ host.boost_clock_ghz or "-" }} GHz</dd></div>
+              <div><dt>Max</dt><dd>{{ host.max_memory_gb or "-" }} GB</dd></div>
+              <div><dt>Mem</dt><dd>{{ host.memory_speed_mhz or "-" }} MHz</dd></div>
+              <div><dt>Bench</dt><dd>{{ host.benchmark_score or "-" }}</dd></div>
+            </dl>
+          </td>
+          <td data-label="Plans">
+            <strong>
+              {% if host.starting_price_usd %}${{ host.starting_price_usd }}/mo{% else %}No price{% endif %}
+            </strong>
+            <small>
+              {{ host.plan_count }} plan{% if host.plan_count != 1 %}s{% endif %}
+              - max {{ host.max_plan_ram_gb or "-" }} GB RAM
+              - {{ host.max_plan_player_slots or "-" }} slots
+            </small>
+            {% if host.lowest_price_per_gb_usd %}
+              <small>${{ host.lowest_price_per_gb_usd }}/GB lowest</small>
+            {% endif %}
+          </td>
+          <td data-label="Support">
+            {% for channel in host.support_channels %}
+              <span class="pill support-pill">{{ channel }}</span>
+            {% else %}
+              <span class="muted">Unknown</span>
+            {% endfor %}
+            {% if host.support_notes %}<small>{{ host.support_notes }}</small>{% endif %}
+          </td>
+          <td data-label="Status">{{ status_labels[host.status] }}</td>
+          <td data-label="Open"><a href="{{ root_prefix }}hosts/{{ host.id }}.html">Open</a></td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
   <div class="empty-public" data-empty-results hidden>
     <strong>No matching hosts.</strong>
-    <span>Clear filters or use fewer tags.</span>
+    <span>Clear filters or use fewer tags/spec ranges.</span>
   </div>
 </section>

@@ -58,6 +58,24 @@
       {% endfor %}
     </select>
   </label>
+  <label>
+    <span>Region</span>
+    <select name="location_tag">
+      <option value="">All regions</option>
+      {% for tag in all_location_tags %}
+        <option value="{{ tag }}" {% if filters.location_tag == tag %}selected{% endif %}>{{ tag }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>
+    <span>Support</span>
+    <select name="support">
+      <option value="">All support</option>
+      {% for channel in all_support_channels %}
+        <option value="{{ channel }}" {% if filters.support == channel %}selected{% endif %}>{{ channel }}</option>
+      {% endfor %}
+    </select>
+  </label>
   <button class="button" type="submit">Filter</button>
 </form>
 
@@ -69,7 +87,10 @@
         <th>Host</th>
         <th>Tier</th>
         <th>Tags</th>
-        <th>CPU / GHz</th>
+        <th>Regions</th>
+        <th>Specs</th>
+        <th>Plans</th>
+        <th>Support</th>
         <th>Categories</th>
         <th>Status</th>
         <th></th>
@@ -91,7 +112,41 @@
               <span class="muted">None</span>
             {% endfor %}
           </td>
-          <td>{{ host.cpu_model or "Unknown CPU" }}{% if host.advertised_clock_ghz %} / {{ host.advertised_clock_ghz }} GHz{% endif %}</td>
+          <td>
+            {% for tag in host.location_tags %}
+              <span class="pill location-pill">{{ tag }}</span>
+            {% else %}
+              <span class="muted">None</span>
+            {% endfor %}
+          </td>
+          <td>
+            <span class="spec-stack">
+              <span>{{ host.cpu_model or "Unknown CPU" }}</span>
+              <span class="muted">
+                Base {{ host.advertised_clock_ghz or "-" }} / peak {{ host.boost_clock_ghz or "-" }} GHz
+                - max {{ host.max_memory_gb or "-" }} GB
+                - mem {{ host.memory_speed_mhz or "-" }} MHz
+                - bench {{ host.benchmark_score or "-" }}
+              </span>
+            </span>
+          </td>
+          <td>
+            <span class="spec-stack">
+              <span>{{ host.plan_count }} plans</span>
+              <span class="muted">
+                from {% if host.starting_price_usd %}${{ host.starting_price_usd }}/mo{% else %}-{% endif %}
+                - max {{ host.max_plan_ram_gb or "-" }} GB RAM
+                - {{ host.max_plan_player_slots or "-" }} slots
+              </span>
+            </span>
+          </td>
+          <td>
+            {% for channel in host.support_channels %}
+              <span class="pill support-pill">{{ channel }}</span>
+            {% else %}
+              <span class="muted">None</span>
+            {% endfor %}
+          </td>
           <td>
             {% for category in host.category_picks %}
               <span class="pill">{{ category_labels[category] }}</span>
