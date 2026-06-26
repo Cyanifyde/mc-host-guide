@@ -1,4 +1,5 @@
 <div class="directory-layout">
+  <button class="mobile-filter-toggle" type="button" data-mobile-filter-toggle aria-expanded="false">Filters and sort</button>
   <aside class="utility-panel filter-sidebar" data-directory-filters>
     <div class="sidebar-filter-head">
       <strong>Filters</strong>
@@ -17,12 +18,13 @@
           <option value="name">Name</option>
           <option value="tier">Tier</option>
           <option value="price-asc">Lowest price</option>
+          <option value="price-per-gb-asc">Lowest $/GB</option>
           <option value="plan-ram-desc">Plan RAM high to low</option>
           <option value="cpu-cores-desc">CPU cores high to low</option>
           <option value="players-desc">Player slots high to low</option>
           <option value="base-ghz-desc">Base GHz high to low</option>
           <option value="peak-ghz-desc">Peak GHz high to low</option>
-          <option value="max-memory-desc">Max memory high to low</option>
+          <option value="max-memory-desc">Node memory high to low</option>
           <option value="memory-speed-desc">Memory MHz high to low</option>
           <option value="benchmark-desc">Benchmark high to low</option>
           <option value="verified-desc">Recently verified</option>
@@ -64,43 +66,8 @@
     </details>
 
     <details class="filter-details" open>
-      <summary>Specs, plans, and capacity</summary>
+      <summary>Price, RAM, and capacity</summary>
       <div class="range-grid sidebar-ranges">
-        <label class="range-control">
-          <span>Base GHz min</span>
-          <div class="range-pair">
-            <input data-range-key="baseGhz" data-range-bound="min" data-range-param="baseMin" type="number" step="0.1" inputmode="decimal">
-            <input class="range-slider" data-slider-target="baseMin" type="range" min="0" max="7" step="0.1" value="0" aria-label="Base GHz minimum slider">
-          </div>
-        </label>
-        <label class="range-control">
-          <span>Peak GHz min</span>
-          <div class="range-pair">
-            <input data-range-key="peakGhz" data-range-bound="min" data-range-param="peakMin" type="number" step="0.1" inputmode="decimal">
-            <input class="range-slider" data-slider-target="peakMin" type="range" min="0" max="7" step="0.1" value="0" aria-label="Peak GHz minimum slider">
-          </div>
-        </label>
-        <label class="range-control">
-          <span>Max memory GB min</span>
-          <div class="range-pair">
-            <input data-range-key="maxMemory" data-range-bound="min" data-range-param="memMin" type="number" step="1" inputmode="numeric">
-            <input class="range-slider" data-slider-target="memMin" type="range" min="0" max="512" step="1" value="0" aria-label="Max memory minimum slider">
-          </div>
-        </label>
-        <label class="range-control">
-          <span>Memory MHz min</span>
-          <div class="range-pair">
-            <input data-range-key="memorySpeed" data-range-bound="min" data-range-param="memSpeedMin" type="number" step="100" inputmode="numeric">
-            <input class="range-slider" data-slider-target="memSpeedMin" type="range" min="0" max="8000" step="100" value="0" aria-label="Memory speed minimum slider">
-          </div>
-        </label>
-        <label class="range-control">
-          <span>Benchmark min</span>
-          <div class="range-pair">
-            <input data-range-key="benchmark" data-range-bound="min" data-range-param="benchMin" type="number" step="1" inputmode="numeric">
-            <input class="range-slider" data-slider-target="benchMin" type="range" min="0" max="6000" step="50" value="0" aria-label="Benchmark minimum slider">
-          </div>
-        </label>
         <label class="range-control">
           <span>Starting price max</span>
           <div class="range-pair">
@@ -127,6 +94,47 @@
           <div class="range-pair">
             <input data-range-key="players" data-range-bound="min" data-range-param="playersMin" type="number" step="1" inputmode="numeric">
             <input class="range-slider" data-slider-target="playersMin" type="range" min="0" max="500" step="5" value="0" aria-label="Player slots minimum slider">
+          </div>
+        </label>
+      </div>
+    </details>
+
+    <details class="filter-details">
+      <summary>Advanced hardware</summary>
+      <div class="range-grid sidebar-ranges">
+        <label class="range-control">
+          <span>Base GHz min</span>
+          <div class="range-pair">
+            <input data-range-key="baseGhz" data-range-bound="min" data-range-param="baseMin" type="number" step="0.1" inputmode="decimal">
+            <input class="range-slider" data-slider-target="baseMin" type="range" min="0" max="7" step="0.1" value="0" aria-label="Base GHz minimum slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>Peak GHz min</span>
+          <div class="range-pair">
+            <input data-range-key="peakGhz" data-range-bound="min" data-range-param="peakMin" type="number" step="0.1" inputmode="decimal">
+            <input class="range-slider" data-slider-target="peakMin" type="range" min="0" max="7" step="0.1" value="0" aria-label="Peak GHz minimum slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>Node memory GB min</span>
+          <div class="range-pair">
+            <input data-range-key="maxMemory" data-range-bound="min" data-range-param="memMin" type="number" step="1" inputmode="numeric">
+            <input class="range-slider" data-slider-target="memMin" type="range" min="0" max="512" step="1" value="0" aria-label="Node memory minimum slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>Memory MHz min</span>
+          <div class="range-pair">
+            <input data-range-key="memorySpeed" data-range-bound="min" data-range-param="memSpeedMin" type="number" step="100" inputmode="numeric">
+            <input class="range-slider" data-slider-target="memSpeedMin" type="range" min="0" max="8000" step="100" value="0" aria-label="Memory speed minimum slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>Benchmark min</span>
+          <div class="range-pair">
+            <input data-range-key="benchmark" data-range-bound="min" data-range-param="benchMin" type="number" step="1" inputmode="numeric">
+            <input class="range-slider" data-slider-target="benchMin" type="range" min="0" max="6000" step="50" value="0" aria-label="Benchmark minimum slider">
           </div>
         </label>
       </div>
@@ -165,14 +173,16 @@
       </details>
     </div>
 
-    <div class="active-filters" data-active-filters aria-label="Active filters"></div>
-
-    <div class="result-line">
-      <span><strong data-result-count aria-live="polite">{{ hosts|length }}</strong> matching hosts</span>
-    </div>
   </aside>
 
   <section class="directory-results">
+    <div class="results-toolbar">
+      <div>
+        <span><strong data-result-count aria-live="polite">{{ hosts|length }}</strong> matching hosts</span>
+        <span class="muted">Rows rotate to the tier that matches your filters and sort.</span>
+      </div>
+      <div class="active-filters" data-active-filters aria-label="Active filters"></div>
+    </div>
     <section class="directory-table-shell">
   <table class="directory-table" data-directory-list>
     <caption class="sr-only">Minecraft hosting providers with specs, regions, plans, and support details</caption>
@@ -180,13 +190,11 @@
       <tr>
         <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="rank">Rank</button></th>
         <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="name">Host</button></th>
-        <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="tier">Tier</button></th>
         <th scope="col">Regions</th>
         <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="base-ghz-desc">Hardware</button></th>
         <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="price-asc">Plans</button></th>
+        <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="price-per-gb-asc">$/GB</button></th>
         <th scope="col">Support</th>
-        <th scope="col">Status</th>
-        <th scope="col"></th>
       </tr>
     </thead>
     <tbody>
@@ -206,6 +214,7 @@
             data-memory-speed="{{ host.memory_speed_mhz }}"
             data-benchmark="{{ host.benchmark_score }}"
             data-price="{{ host.starting_price_usd }}"
+            data-price-per-gb="{{ host.lowest_price_per_gb_usd }}"
             data-plan-ram="{{ host.max_plan_ram_gb }}"
             data-cores="{{ host.max_cpu_cores }}"
             data-players="{{ host.max_plan_player_slots }}"
@@ -214,10 +223,17 @@
             data-tags="{{ host.tags|join(' ') }}"
             data-location-tags="{{ host.location_tags|join(' ') }}"
             data-support="{{ host.support_channels|join(' ') }}"
-            data-categories="{{ host.category_picks|join(' ') }}">
+            data-categories="{{ host.category_picks|join(' ') }}"
+            data-detail-url="{{ root_prefix }}hosts/{{ host.id }}.html">
           <td data-label="Rank" class="rank-cell">{{ host.rank }}</td>
           <td data-label="Host">
-            <a class="host-name-link" href="{{ root_prefix }}hosts/{{ host.id }}.html">{{ host.name }}</a>
+            <a class="host-name-link" data-selected-host-link href="{{ root_prefix }}hosts/{{ host.id }}.html{% if default_offer.get('id') %}?tier={{ default_offer.get('id') }}{% endif %}">{{ host.name }}</a>
+            <div class="host-cell-meta">
+              <span>#{{ host.rank }}</span>
+              <span class="badge tier-{{ host.recommendation_tier }}">{{ tier_labels[host.recommendation_tier] }}</span>
+              <span class="shown-tier" data-selected-tier-chip>Showing {{ default_offer.get("label", "Default tier") }}</span>
+              <span>{{ status_labels[host.status] }}</span>
+            </div>
             <small>{{ host.summary or "No summary" }}</small>
             <div class="pill-row compact-pills">
               {% for tag in host.tags[:4] %}
@@ -225,7 +241,6 @@
               {% endfor %}
             </div>
           </td>
-          <td data-label="Tier"><span class="badge tier-{{ host.recommendation_tier }}">{{ tier_labels[host.recommendation_tier] }}</span></td>
           <td data-label="Regions">
             <div class="pill-row compact-pills" data-selected-regions>
               {% for tag in default_offer.get('locationTags', host.location_tags) %}
@@ -243,7 +258,7 @@
               <div><dt>Cores</dt><dd data-selected-cores>{{ default_offer.get("cores") or "-" }}</dd></div>
               <div><dt>Base</dt><dd data-selected-base>{{ default_offer.get("baseGhz") or "-" }} GHz</dd></div>
               <div><dt>Peak</dt><dd data-selected-peak>{{ default_offer.get("peakGhz") or "-" }} GHz</dd></div>
-              <div><dt>Max</dt><dd data-selected-max-memory>{{ default_offer.get("maxMemory") or "-" }} GB</dd></div>
+              <div><dt>Node</dt><dd data-selected-max-memory>{{ default_offer.get("maxMemory") or "-" }} GB</dd></div>
               <div><dt>Mem</dt><dd data-selected-memory>{{ default_offer.get("memorySpeed") or "-" }} MHz</dd></div>
               <div><dt>Bench</dt><dd data-selected-benchmark>{{ default_offer.get("benchmark") or "-" }}</dd></div>
             </dl>
@@ -260,6 +275,11 @@
             </small>
             <small class="offer-count">{{ host.tier_option_count }} tier option{% if host.tier_option_count != 1 %}s{% endif %}</small>
           </td>
+          <td data-label="$/GB" class="value-cell">
+            <strong data-selected-price-per-gb>
+              {% if default_offer.get("pricePerGb") %}${{ default_offer.get("pricePerGb") }}/GB{% else %}-{% endif %}
+            </strong>
+          </td>
           <td data-label="Support">
             <div class="pill-row compact-pills" data-selected-support>
               {% for channel in default_offer.get('supportChannels', host.support_channels) %}
@@ -274,8 +294,6 @@
             </small>
             <small data-selected-support-note>{{ default_offer.get("supportNotes") or host.support_notes }}</small>
           </td>
-          <td data-label="Status">{{ status_labels[host.status] }}</td>
-          <td data-label="Open"><a data-selected-open href="{{ root_prefix }}hosts/{{ host.id }}.html">Open</a></td>
         </tr>
       {% endfor %}
     </tbody>

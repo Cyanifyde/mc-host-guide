@@ -121,12 +121,13 @@
           </td>
           <td>
             <span class="spec-stack">
-              <span>{{ host.cpu_model or "Unknown CPU" }}</span>
+              <span>{{ host.cpu_model_summary or "Unknown CPU" }}</span>
               <span class="muted">
-                Base {{ host.advertised_clock_ghz or "-" }} / peak {{ host.boost_clock_ghz or "-" }} GHz
-                - max {{ host.max_memory_gb or "-" }} GB
-                - mem {{ host.memory_speed_mhz or "-" }} MHz
-                - bench {{ host.benchmark_score or "-" }}
+                Base {{ host.base_ghz_summary or "-" }}
+                - peak {{ host.peak_ghz_summary or "-" }}
+                - node {{ host.max_memory_summary or "-" }}
+                - mem {{ host.memory_speed_summary or "-" }}
+                - bench {{ host.benchmark_summary or "-" }}
               </span>
               <span class="muted">
                 {{ host.tier_option_count }} tier option{% if host.tier_option_count != 1 %}s{% endif %}
@@ -139,6 +140,7 @@
               <span>{{ host.tier_option_count }} tier option{% if host.tier_option_count != 1 %}s{% endif %}</span>
               <span class="muted">
                 from {% if host.starting_price_usd %}${{ host.starting_price_usd }}/mo{% else %}-{% endif %}
+                - best {% if host.lowest_price_per_gb_usd %}${{ host.lowest_price_per_gb_usd }}/GB{% else %}-{% endif %}
                 - max {{ host.max_plan_ram_gb or "-" }} GB RAM
                 - max {{ host.max_cpu_cores or "-" }} CPU
                 - {{ host.max_plan_player_slots or "-" }} slots

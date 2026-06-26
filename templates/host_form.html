@@ -86,7 +86,7 @@
     <div class="section-heading compact">
       <div>
         <h2>Tiers</h2>
-        <p class="muted">Each row is one real purchasable tier: pricing, RAM, CPU/specs, regions, support, and hosting features all live together.</p>
+        <p class="muted">Each row is one real purchasable tier. Fill the visible comparison fields first, then open advanced tier fields for storage, panel, DDoS, modpacks, URL, and notes when the host publishes them.</p>
       </div>
       <button class="button" type="button" data-add-plan>Add tier</button>
     </div>
@@ -139,7 +139,7 @@
               <textarea name="plan_support_channels" rows="2" placeholder="tickets&#10;discord">{{ plan.get('support_channels', [])|join('\n') }}</textarea>
             </label>
             <details class="row-extra">
-              <summary>More specs, storage, hosting features, URL, notes</summary>
+              <summary>Advanced tier fields: storage, panel, DDoS, modpacks, URL, notes</summary>
               <div class="row-extra-grid">
                 <label><span>Plan URL</span><input name="plan_plan_url" value="{{ plan.get('plan_url', '') }}" type="url"></label>
                 <label><span>Recommended players</span><input name="plan_recommended_players" value="{{ plan.get('recommended_players', '') }}" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
@@ -176,7 +176,7 @@
           <label><span>Slots</span><input name="plan_player_slots" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
           <label><span>Support</span><textarea name="plan_support_channels" rows="2" placeholder="tickets&#10;discord"></textarea></label>
           <details class="row-extra">
-            <summary>More specs, storage, hosting features, URL, notes</summary>
+            <summary>Advanced tier fields: storage, panel, DDoS, modpacks, URL, notes</summary>
             <div class="row-extra-grid">
               <label><span>Plan URL</span><input name="plan_plan_url" type="url"></label>
               <label><span>Recommended players</span><input name="plan_recommended_players" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
@@ -332,6 +332,7 @@
   </section>
 
   <div class="form-actions sticky-save-bar">
+    <span class="unsaved-status" data-unsaved-status>Ready</span>
     <button class="button primary" type="submit">Save host</button>
     <a class="button" href="{{ url_for('dashboard') }}">Cancel</a>
   </div>

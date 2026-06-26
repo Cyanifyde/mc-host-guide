@@ -23,10 +23,11 @@ function wireDirectoryFilters() {
   const tier = root.querySelector("[data-filter-tier]");
   const category = root.querySelector("[data-filter-category]");
   const status = root.querySelector("[data-filter-status]");
-  const count = root.querySelector("[data-result-count]");
+  const counts = Array.from(document.querySelectorAll("[data-result-count]"));
   const empty = document.querySelector("[data-empty-results]");
   const clear = root.querySelector("[data-clear-filters]");
-  const activeFilterRoot = root.querySelector("[data-active-filters]");
+  const activeFilterRoot = document.querySelector("[data-active-filters]");
+  const mobileFilterToggle = document.querySelector("[data-mobile-filter-toggle]");
   const rangeInputs = Array.from(root.querySelectorAll("[data-range-key]"));
   const exactInputs = Array.from(root.querySelectorAll("[data-exact-key]"));
   const sliderInputs = Array.from(root.querySelectorAll("[data-slider-target]"));
@@ -130,6 +131,7 @@ function wireDirectoryFilters() {
     return {
       label: "Default tier",
       price: row.dataset.price || "",
+      pricePerGb: row.dataset.pricePerGb || "",
       planRam: row.dataset.planRam || "",
       players: row.dataset.players || "",
       recommendedPlayers: row.dataset.recommendedPlayers || "",
@@ -171,6 +173,7 @@ function wireDirectoryFilters() {
   function offerSortSpec() {
     const value = sort.value;
     if (value === "price-asc") return ["price", "asc"];
+    if (value === "price-per-gb-asc") return ["pricePerGb", "asc"];
     if (value === "plan-ram-desc") return ["planRam", "desc"];
     if (value === "cpu-cores-desc") return ["cores", "desc"];
     if (value === "players-desc") return ["players", "desc"];
@@ -227,7 +230,9 @@ function wireDirectoryFilters() {
     setText(row, "[data-selected-memory]", formatMetric(offer.memorySpeed, " MHz"));
     setText(row, "[data-selected-benchmark]", offer.benchmark || "-");
     setText(row, "[data-selected-price]", offer.price ? `$${offer.price}/mo` : "No price");
+    setText(row, "[data-selected-price-per-gb]", offer.pricePerGb ? `$${offer.pricePerGb}/GB` : "-");
     setText(row, "[data-selected-plan]", offer.planName || "Plan");
+    setText(row, "[data-selected-tier-chip]", `Showing ${offer.label || offer.planName || "Default tier"}`);
     setText(
       row,
       "[data-selected-plan-detail]",
@@ -276,8 +281,11 @@ function wireDirectoryFilters() {
     setText(row, "[data-selected-features]", featureParts.length ? featureParts.join(" - ") : "Unknown features");
     setText(row, "[data-selected-support-note]", offer.supportNotes || offer.priceNotes || "");
 
-    const open = row.querySelector("[data-selected-open]");
-    if (open && offer.url) open.href = offer.url;
+    const hostLink = row.querySelector("[data-selected-host-link]");
+    if (hostLink && row.dataset.detailUrl) {
+      const tierParam = offer.id ? `?tier=${encodeURIComponent(offer.id)}` : "";
+      hostLink.href = `${row.dataset.detailUrl}${tierParam}`;
+    }
   }
 
   function restoreState() {
@@ -390,6 +398,7 @@ function wireDirectoryFilters() {
           || Number(a.dataset.rank) - Number(b.dataset.rank);
       }
       if (value === "price-asc") return compareNumber(a, b, "price", "asc");
+      if (value === "price-per-gb-asc") return compareNumber(a, b, "pricePerGb", "asc");
       if (value === "plan-ram-desc") return compareNumber(a, b, "planRam");
       if (value === "cpu-cores-desc") return compareNumber(a, b, "cores");
       if (value === "players-desc") return compareNumber(a, b, "players");
@@ -479,7 +488,7 @@ function wireDirectoryFilters() {
       row.hidden = false;
       body.appendChild(row);
     }
-    count.textContent = visibleRows.length;
+    for (const counter of counts) counter.textContent = visibleRows.length;
     if (empty) empty.hidden = visibleRows.length !== 0;
     syncSortButtons();
     renderActiveFilters();
@@ -543,8 +552,120 @@ function wireDirectoryFilters() {
     applyFilters();
   });
 
+  mobileFilterToggle?.addEventListener("click", () => {
+    const isOpen = root.classList.toggle("open");
+    mobileFilterToggle.setAttribute("aria-expanded", String(isOpen));
+  });
+
   restoreState();
   applyFilters();
+}
+
+function wireHostForm() {
+  const form = document.querySelector("[data-host-form]");
+  const status = document.querySelector("[data-unsaved-status]");
+  if (!form || !status) return;
+
+  let dirty = false;
+
+  function markDirty() {
+    if (dirty) return;
+    dirty = true;
+    status.textContent = "Unsaved changes";
+    status.classList.add("dirty");
+  }
+
+  form.addEventListener("input", markDirty);
+  form.addEventListener("change", markDirty);
+  form.addEventListener("submit", () => {
+    status.textContent = "Saving...";
+    status.classList.remove("dirty");
+  });
+  document.addEventListener("keydown", (event) => {
+    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "s") return;
+    event.preventDefault();
+    form.requestSubmit();
+  });
+}
+
+function wireHostTierDetail() {
+  const detail = document.querySelector("[data-tier-detail]");
+  const rows = Array.from(document.querySelectorAll("[data-tier-row]"));
+  if (!detail || !rows.length) return;
+
+  function readOffer(row) {
+    try {
+      return JSON.parse(row.dataset.tierOffer || "{}");
+    } catch {
+      return {};
+    }
+  }
+
+  function set(selector, value) {
+    const target = detail.querySelector(selector);
+    if (target) target.textContent = value || "-";
+  }
+
+  function formatMoney(value, suffix = "") {
+    return value ? `$${value}${suffix}` : "-";
+  }
+
+  function formatGb(value) {
+    return value ? `${value} GB` : "-";
+  }
+
+  function selectTier(row, updateUrl = false) {
+    if (!row) return;
+    const offer = readOffer(row);
+    for (const item of rows) item.classList.toggle("selected", item === row);
+    set("[data-tier-detail-label]", offer.label || offer.planName || "Selected tier");
+    set("[data-tier-detail-price]", formatMoney(offer.price, "/mo"));
+    set("[data-tier-detail-price-per-gb]", formatMoney(offer.pricePerGb, "/GB"));
+    set("[data-tier-detail-ram]", formatGb(offer.planRam));
+    set("[data-tier-detail-players]", offer.players || "-");
+    set("[data-tier-detail-cpu]", offer.cpuModel || "-");
+    set("[data-tier-detail-cores]", offer.cores || "-");
+    set("[data-tier-detail-ghz]", `${offer.baseGhz || "-"} / ${offer.peakGhz || "-"} GHz`);
+    set(
+      "[data-tier-detail-memory]",
+      `${offer.maxMemory ? `${offer.maxMemory} GB` : "-"} max, ${offer.memorySpeed ? `${offer.memorySpeed} MHz` : "-"}`,
+    );
+    set("[data-tier-detail-regions]", (offer.locationTags || []).join(", ") || "-");
+    set("[data-tier-detail-support]", (offer.supportChannels || []).join(", ") || "-");
+    set(
+      "[data-tier-detail-features]",
+      [offer.panel, offer.ddosProtection, offer.modpackSupport].filter(Boolean).join(" - ") || "-",
+    );
+    set(
+      "[data-tier-detail-storage]",
+      `${offer.storage ? `${offer.storage} GB` : "-"}${offer.storageType ? `, ${offer.storageType}` : ""}`,
+    );
+
+    const link = detail.querySelector("[data-tier-detail-url]");
+    if (link) {
+      if (offer.url) link.href = offer.url;
+      link.hidden = !offer.url && !link.getAttribute("href");
+    }
+
+    if (updateUrl && offer.id) {
+      const params = new URLSearchParams(window.location.search);
+      params.set("tier", offer.id);
+      window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
+    }
+  }
+
+  for (const row of rows) {
+    row.addEventListener("click", () => selectTier(row, true));
+    row.addEventListener("keydown", (event) => {
+      if (!["Enter", " "].includes(event.key)) return;
+      event.preventDefault();
+      selectTier(row, true);
+    });
+  }
+
+  const requestedTier = new URLSearchParams(window.location.search).get("tier");
+  const initial = rows.find((row) => row.dataset.tierId === requestedTier) || rows[0];
+  selectTier(initial, false);
 }
 
 function wirePlanEditor() {
@@ -712,6 +833,8 @@ function wireReorder() {
 
 document.addEventListener("DOMContentLoaded", () => {
   wireDirectoryFilters();
+  wireHostTierDetail();
+  wireHostForm();
   wirePlanEditor();
   wireReorder();
 });

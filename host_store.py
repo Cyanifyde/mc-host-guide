@@ -137,11 +137,25 @@ DEFAULT_HOST: dict[str, Any] = {
     "hardware_tier_count": 0,
     "tier_option_count": 0,
     "starting_price_usd": "",
+    "price_range_usd": "",
     "lowest_price_per_gb_usd": "",
     "max_plan_ram_gb": "",
     "max_plan_player_slots": "",
     "max_recommended_players": "",
     "max_cpu_cores": "",
+    "cpu_model_summary": "",
+    "cpu_vendor_summary": "",
+    "base_ghz_summary": "",
+    "peak_ghz_summary": "",
+    "max_memory_summary": "",
+    "memory_speed_summary": "",
+    "benchmark_summary": "",
+    "storage_summary": "",
+    "panel_summary": "",
+    "ddos_summary": "",
+    "modpack_summary": "",
+    "support_summary": "",
+    "server_type_summary": "",
 }
 
 PLAN_TEXT_FIELDS = [
@@ -352,6 +366,54 @@ def format_metric(value: float | None) -> str:
     return f"{value:.2f}".rstrip("0").rstrip(".")
 
 
+def unique_offer_values(offers: list[dict[str, Any]], key: str) -> list[str]:
+    values: list[str] = []
+    seen: set[str] = set()
+    for offer in offers:
+        raw = str(offer.get(key, "") or "").strip()
+        if not raw:
+            continue
+        marker = raw.lower()
+        if marker in seen:
+            continue
+        seen.add(marker)
+        values.append(raw)
+    return values
+
+
+def unique_nested_offer_values(offers: list[dict[str, Any]], key: str) -> list[str]:
+    values: list[str] = []
+    seen: set[str] = set()
+    for offer in offers:
+        for raw in offer.get(key, []) or []:
+            value = str(raw or "").strip()
+            if not value:
+                continue
+            marker = value.lower()
+            if marker in seen:
+                continue
+            seen.add(marker)
+            values.append(value)
+    return values
+
+
+def summarize_values(values: list[str], limit: int = 3) -> str:
+    if not values:
+        return ""
+    suffix = f" +{len(values) - limit} more" if len(values) > limit else ""
+    return ", ".join(values[:limit]) + suffix
+
+
+def metric_range(values: list[float], suffix: str = "") -> str:
+    if not values:
+        return ""
+    low = min(values)
+    high = max(values)
+    if low == high:
+        return f"{format_metric(low)}{suffix}"
+    return f"{format_metric(low)}-{format_metric(high)}{suffix}"
+
+
 def legacy_hardware_tier(host: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": "host-default",
@@ -542,12 +604,22 @@ def apply_plan_summary(host: dict[str, Any]) -> None:
     slots = [offer_value(offer, "players") for offer in offers]
     recommended = [offer_value(offer, "recommendedPlayers") for offer in offers]
     cores = [offer_value(offer, "cores") for offer in offers]
+    base_ghz = [offer_value(offer, "baseGhz") for offer in offers]
+    peak_ghz = [offer_value(offer, "peakGhz") for offer in offers]
+    max_memory = [offer_value(offer, "maxMemory") for offer in offers]
+    memory_speed = [offer_value(offer, "memorySpeed") for offer in offers]
+    benchmark = [offer_value(offer, "benchmark") for offer in offers]
 
     prices = [value for value in prices if value is not None]
     rams = [value for value in rams if value is not None]
     slots = [value for value in slots if value is not None]
     recommended = [value for value in recommended if value is not None]
     cores = [value for value in cores if value is not None]
+    base_ghz = [value for value in base_ghz if value is not None]
+    peak_ghz = [value for value in peak_ghz if value is not None]
+    max_memory = [value for value in max_memory if value is not None]
+    memory_speed = [value for value in memory_speed if value is not None]
+    benchmark = [value for value in benchmark if value is not None]
     price_per_gb = [
         value
         for value in (offer_value(offer, "pricePerGb") for offer in offers)
@@ -558,11 +630,39 @@ def apply_plan_summary(host: dict[str, Any]) -> None:
     host["hardware_tier_count"] = len(host.get("hardware_tiers", []))
     host["tier_option_count"] = len(offers)
     host["starting_price_usd"] = format_metric(min(prices) if prices else None)
+    host["price_range_usd"] = metric_range(prices)
     host["lowest_price_per_gb_usd"] = format_metric(min(price_per_gb) if price_per_gb else None)
     host["max_plan_ram_gb"] = format_metric(max(rams) if rams else None)
     host["max_plan_player_slots"] = format_metric(max(slots) if slots else None)
     host["max_recommended_players"] = format_metric(max(recommended) if recommended else None)
     host["max_cpu_cores"] = format_metric(max(cores) if cores else None)
+    host["cpu_model_summary"] = summarize_values(unique_offer_values(offers, "cpuModel")) or host.get(
+        "cpu_model", ""
+    )
+    host["cpu_vendor_summary"] = summarize_values(unique_offer_values(offers, "cpuVendor")) or host.get(
+        "cpu_vendor", ""
+    )
+    host["base_ghz_summary"] = metric_range(base_ghz, " GHz")
+    host["peak_ghz_summary"] = metric_range(peak_ghz, " GHz")
+    host["max_memory_summary"] = metric_range(max_memory, " GB")
+    host["memory_speed_summary"] = metric_range(memory_speed, " MHz")
+    host["benchmark_summary"] = metric_range(benchmark)
+    host["storage_summary"] = summarize_values(unique_offer_values(offers, "storageType")) or host.get(
+        "storage_type", ""
+    )
+    host["panel_summary"] = summarize_values(unique_offer_values(offers, "panel")) or host.get("panel", "")
+    host["ddos_summary"] = summarize_values(unique_offer_values(offers, "ddosProtection")) or host.get(
+        "ddos_protection", ""
+    )
+    host["modpack_summary"] = summarize_values(unique_offer_values(offers, "modpackSupport")) or host.get(
+        "modpack_support", ""
+    )
+    host["support_summary"] = summarize_values(unique_nested_offer_values(offers, "supportChannels")) or ", ".join(
+        host.get("support_channels", [])
+    )
+    host["server_type_summary"] = summarize_values(unique_nested_offer_values(offers, "serverTypes")) or ", ".join(
+        host.get("server_types", [])
+    )
 
 
 def sort_hosts(hosts: list[dict[str, Any]]) -> list[dict[str, Any]]:
