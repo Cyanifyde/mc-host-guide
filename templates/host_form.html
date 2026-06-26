@@ -233,7 +233,8 @@
       </label>
       <label>
         <span>Tags</span>
-        <textarea name="tags" rows="3" placeholder="ryzen&#10;budget&#10;eu">{{ host.tags|join('\n') }}</textarea>
+        <textarea name="tags" rows="3" placeholder="ryzen&#10;budget&#10;scam&#10;dangerous">{{ host.tags|join('\n') }}</textarea>
+        <small class="field-hint">Built-in risk tags: {{ host_tag_options|join(", ") }}</small>
       </label>
       <label>
         <span>Locations</span>

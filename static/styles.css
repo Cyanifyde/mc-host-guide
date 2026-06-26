@@ -280,6 +280,13 @@ legend {
   margin-bottom: 4px;
 }
 
+.field-hint {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
 input,
 select,
 textarea {

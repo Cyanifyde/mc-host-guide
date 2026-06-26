@@ -19,6 +19,7 @@ from host_store import (
     CATEGORY_LABELS,
     CATEGORY_OPTIONS,
     DEFAULT_HOST,
+    HOST_TAG_OPTIONS,
     STATUS_LABELS,
     STATUS_OPTIONS,
     TIER_LABELS,
@@ -50,6 +51,7 @@ def inject_options():
         "category_labels": CATEGORY_LABELS,
         "status_options": STATUS_OPTIONS,
         "status_labels": STATUS_LABELS,
+        "host_tag_options": HOST_TAG_OPTIONS,
     }
 
 

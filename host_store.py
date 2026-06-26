@@ -51,6 +51,8 @@ STATUS_LABELS = {
     "inactive": "Inactive",
 }
 
+HOST_TAG_OPTIONS = ["scam", "dangerous"]
+
 LIST_FIELDS = [
     "category_picks",
     "tags",
@@ -702,7 +704,9 @@ def all_tags(hosts: list[dict[str, Any]]) -> list[str]:
     tags: set[str] = set()
     for host in hosts:
         tags.update(host.get("tags", []))
-    return sorted(tags)
+    return HOST_TAG_OPTIONS + [
+        tag for tag in sorted(tags) if tag not in HOST_TAG_OPTIONS
+    ]
 
 
 def all_location_tags(hosts: list[dict[str, Any]]) -> list[str]:
