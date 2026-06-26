@@ -28,8 +28,17 @@ function wireDirectoryFilters() {
   const clear = root.querySelector("[data-clear-filters]");
   const activeFilterRoot = root.querySelector("[data-active-filters]");
   const rangeInputs = Array.from(root.querySelectorAll("[data-range-key]"));
+  const exactInputs = Array.from(root.querySelectorAll("[data-exact-key]"));
   const sortButtons = Array.from(document.querySelectorAll("[data-sort-button]"));
   const rows = Array.from(body.querySelectorAll(".host-row"));
+
+  for (const row of rows) {
+    try {
+      row._offers = JSON.parse(row.dataset.offers || "[]");
+    } catch {
+      row._offers = [];
+    }
+  }
 
   const chipGroups = [
     {
@@ -44,6 +53,7 @@ function wireDirectoryFilters() {
       label: "Region",
       param: "regions",
       rowKey: "locationTags",
+      offerKey: "locationTags",
       buttonKey: "locationFilter",
       buttons: Array.from(root.querySelectorAll("[data-location-filter]")),
       active: new Set(),
@@ -52,6 +62,7 @@ function wireDirectoryFilters() {
       label: "Support",
       param: "support",
       rowKey: "support",
+      offerKey: "supportChannels",
       buttonKey: "supportFilter",
       buttons: Array.from(root.querySelectorAll("[data-support-filter]")),
       active: new Set(),
@@ -72,14 +83,179 @@ function wireDirectoryFilters() {
     };
   }
 
-  function rangeMatches(row, key) {
+  function offerMetric(offer, key) {
+    return parseNumber(offer?.[key]);
+  }
+
+  function rangeMatchesOffer(offer, key) {
     const range = rangeFor(key);
     if (range.min === null && range.max === null) return true;
-    const value = parseNumber(row.dataset[key]);
+    const value = offerMetric(offer, key);
     if (value === null) return false;
     if (range.min !== null && value < range.min) return false;
     if (range.max !== null && value > range.max) return false;
     return true;
+  }
+
+  function exactMatchesOffer(offer, input) {
+    const expected = parseNumber(input.value);
+    if (expected === null) return true;
+    const actual = offerMetric(offer, input.dataset.exactKey);
+    return actual !== null && actual === expected;
+  }
+
+  function fallbackOffer(row) {
+    return {
+      label: "Default tier",
+      price: row.dataset.price || "",
+      planRam: row.dataset.planRam || "",
+      players: row.dataset.players || "",
+      recommendedPlayers: row.dataset.recommendedPlayers || "",
+      cores: row.dataset.cores || "",
+      cpuModel: row.dataset.cpuModel || "",
+      baseGhz: row.dataset.baseGhz || "",
+      peakGhz: row.dataset.peakGhz || "",
+      maxMemory: row.dataset.maxMemory || "",
+      memorySpeed: row.dataset.memorySpeed || "",
+      benchmark: row.dataset.benchmark || "",
+      locationTags: splitValues(row.dataset.locationTags),
+      supportChannels: splitValues(row.dataset.support),
+      panel: "",
+      ddosProtection: "",
+      modpackSupport: "",
+      supportNotes: "",
+    };
+  }
+
+  function offersFor(row) {
+    return row._offers?.length ? row._offers : [fallbackOffer(row)];
+  }
+
+  function candidateOffers(row) {
+    let candidates = offersFor(row);
+    for (const group of chipGroups) {
+      if (!group.offerKey || !group.active.size) continue;
+      candidates = candidates.filter((offer) => {
+        const values = offer[group.offerKey] || [];
+        return Array.from(group.active).every((value) => values.includes(value));
+      });
+    }
+    const rangeKeys = Array.from(new Set(rangeInputs.map((input) => input.dataset.rangeKey)));
+    candidates = candidates.filter((offer) => rangeKeys.every((key) => rangeMatchesOffer(offer, key)));
+    candidates = candidates.filter((offer) => exactInputs.every((input) => exactMatchesOffer(offer, input)));
+    return candidates;
+  }
+
+  function offerSortSpec() {
+    const value = sort.value;
+    if (value === "price-asc") return ["price", "asc"];
+    if (value === "plan-ram-desc") return ["planRam", "desc"];
+    if (value === "cpu-cores-desc") return ["cores", "desc"];
+    if (value === "players-desc") return ["players", "desc"];
+    if (value === "base-ghz-desc") return ["baseGhz", "desc"];
+    if (value === "peak-ghz-desc") return ["peakGhz", "desc"];
+    if (value === "max-memory-desc") return ["maxMemory", "desc"];
+    if (value === "memory-speed-desc") return ["memorySpeed", "desc"];
+    if (value === "benchmark-desc") return ["benchmark", "desc"];
+    return null;
+  }
+
+  function compareOfferMetric(a, b, key, direction = "desc") {
+    const aValue = offerMetric(a, key);
+    const bValue = offerMetric(b, key);
+    if (aValue === null && bValue === null) return 0;
+    if (aValue === null) return 1;
+    if (bValue === null) return -1;
+    return direction === "asc" ? aValue - bValue : bValue - aValue;
+  }
+
+  function selectedOffer(row) {
+    const candidates = candidateOffers(row);
+    const offers = candidates.length ? candidates : offersFor(row);
+    const sortSpec = offerSortSpec();
+    if (sortSpec) {
+      const [key, direction] = sortSpec;
+      return [...offers].sort((a, b) => compareOfferMetric(a, b, key, direction))[0];
+    }
+    const exactCore = exactInputs.find((input) => input.dataset.exactKey === "cores" && input.value);
+    if (exactCore) {
+      return [...offers].sort((a, b) => compareOfferMetric(a, b, "price", "asc"))[0];
+    }
+    return offers[0];
+  }
+
+  function formatMetric(value, suffix = "") {
+    return value ? `${value}${suffix}` : "-";
+  }
+
+  function setText(row, selector, value) {
+    const target = row.querySelector(selector);
+    if (target) target.textContent = value;
+  }
+
+  function renderSelectedOffer(row, offer) {
+    if (!offer) return;
+    setText(row, "[data-selected-cpu]", offer.cpuModel || "Unknown CPU");
+    setText(row, "[data-selected-hardware]", offer.hardwareName || "Default hardware");
+    setText(row, "[data-selected-tier-label]", offer.label || "Default tier");
+    setText(row, "[data-selected-cores]", offer.cores || "-");
+    setText(row, "[data-selected-base]", formatMetric(offer.baseGhz, " GHz"));
+    setText(row, "[data-selected-peak]", formatMetric(offer.peakGhz, " GHz"));
+    setText(row, "[data-selected-max-memory]", formatMetric(offer.maxMemory, " GB"));
+    setText(row, "[data-selected-memory]", formatMetric(offer.memorySpeed, " MHz"));
+    setText(row, "[data-selected-benchmark]", offer.benchmark || "-");
+    setText(row, "[data-selected-price]", offer.price ? `$${offer.price}/mo` : "No price");
+    setText(row, "[data-selected-plan]", offer.planName || "Plan");
+    setText(
+      row,
+      "[data-selected-plan-detail]",
+      `${offer.planRam || "-"} GB RAM - ${offer.players || "-"} slots - ${offer.storage || "-"} GB storage`,
+    );
+
+    const regions = row.querySelector("[data-selected-regions]");
+    if (regions) {
+      regions.textContent = "";
+      const tags = offer.locationTags || [];
+      if (!tags.length) {
+        const emptyTag = document.createElement("span");
+        emptyTag.className = "muted";
+        emptyTag.textContent = "Unknown";
+        regions.appendChild(emptyTag);
+      } else {
+        for (const tag of tags) {
+          const pill = document.createElement("span");
+          pill.className = "pill location-pill";
+          pill.textContent = tag;
+          regions.appendChild(pill);
+        }
+      }
+    }
+
+    const support = row.querySelector("[data-selected-support]");
+    if (support) {
+      support.textContent = "";
+      const channels = offer.supportChannels || [];
+      if (!channels.length) {
+        const emptyChannel = document.createElement("span");
+        emptyChannel.className = "muted";
+        emptyChannel.textContent = "Unknown";
+        support.appendChild(emptyChannel);
+      } else {
+        for (const channel of channels) {
+          const pill = document.createElement("span");
+          pill.className = "pill support-pill";
+          pill.textContent = channel;
+          support.appendChild(pill);
+        }
+      }
+    }
+
+    const featureParts = [offer.panel, offer.ddosProtection, offer.modpackSupport].filter(Boolean);
+    setText(row, "[data-selected-features]", featureParts.length ? featureParts.join(" - ") : "Unknown features");
+    setText(row, "[data-selected-support-note]", offer.supportNotes || offer.priceNotes || "");
+
+    const open = row.querySelector("[data-selected-open]");
+    if (open && offer.url) open.href = offer.url;
   }
 
   function restoreState() {
@@ -92,6 +268,9 @@ function wireDirectoryFilters() {
 
     for (const input of rangeInputs) {
       input.value = params.get(input.dataset.rangeParam) || "";
+    }
+    for (const input of exactInputs) {
+      input.value = params.get(input.dataset.exactParam) || "";
     }
 
     for (const group of chipGroups) {
@@ -142,6 +321,9 @@ function wireDirectoryFilters() {
     for (const input of rangeInputs) {
       if (input.value) params.set(input.dataset.rangeParam, input.value);
     }
+    for (const input of exactInputs) {
+      if (input.value) params.set(input.dataset.exactParam, input.value);
+    }
     for (const group of chipGroups) {
       if (group.active.size) params.set(group.param, Array.from(group.active).join(","));
     }
@@ -159,17 +341,17 @@ function wireDirectoryFilters() {
       !category.value || splitValues(row.dataset.categories).includes(category.value);
     const matchesStatus = !status.value || row.dataset.status === status.value;
     const matchesGroups = chipGroups.every((group) => {
+      if (group.offerKey) return true;
       const rowValues = splitValues(row.dataset[group.rowKey]);
       return Array.from(group.active).every((value) => rowValues.includes(value));
     });
-    const rangeKeys = Array.from(new Set(rangeInputs.map((input) => input.dataset.rangeKey)));
-    const matchesRanges = rangeKeys.every((key) => rangeMatches(row, key));
-    return matchesQuery && matchesTier && matchesCategory && matchesStatus && matchesGroups && matchesRanges;
+    const matchesOffers = candidateOffers(row).length > 0;
+    return matchesQuery && matchesTier && matchesCategory && matchesStatus && matchesGroups && matchesOffers;
   }
 
   function compareNumber(a, b, key, direction = "desc") {
-    const aValue = parseNumber(a.dataset[key]);
-    const bValue = parseNumber(b.dataset[key]);
+    const aValue = offerMetric(a._selectedOffer, key);
+    const bValue = offerMetric(b._selectedOffer, key);
     if (aValue === null && bValue === null) return Number(a.dataset.rank) - Number(b.dataset.rank);
     if (aValue === null) return 1;
     if (bValue === null) return -1;
@@ -186,6 +368,7 @@ function wireDirectoryFilters() {
       }
       if (value === "price-asc") return compareNumber(a, b, "price", "asc");
       if (value === "plan-ram-desc") return compareNumber(a, b, "planRam");
+      if (value === "cpu-cores-desc") return compareNumber(a, b, "cores");
       if (value === "players-desc") return compareNumber(a, b, "players");
       if (value === "base-ghz-desc") return compareNumber(a, b, "baseGhz");
       if (value === "peak-ghz-desc") return compareNumber(a, b, "peakGhz");
@@ -241,6 +424,14 @@ function wireDirectoryFilters() {
         applyFilters();
       });
     }
+    for (const input of exactInputs) {
+      if (!input.value) continue;
+      const label = input.closest("label")?.querySelector("span")?.textContent || "Exact";
+      addFilterChip(label, input.value, () => {
+        input.value = "";
+        applyFilters();
+      });
+    }
     for (const group of chipGroups) {
       for (const value of group.active) {
         addFilterChip(group.label, value, () => {
@@ -253,6 +444,10 @@ function wireDirectoryFilters() {
   }
 
   function applyFilters() {
+    for (const row of rows) {
+      row._selectedOffer = selectedOffer(row);
+      renderSelectedOffer(row, row._selectedOffer);
+    }
     const visibleRows = sortRows(rows.filter(rowMatches));
     for (const row of rows) row.hidden = true;
     for (const row of visibleRows) {
@@ -272,6 +467,9 @@ function wireDirectoryFilters() {
     input.addEventListener("change", applyFilters);
   }
   for (const input of rangeInputs) {
+    input.addEventListener("input", debouncedApply);
+  }
+  for (const input of exactInputs) {
     input.addEventListener("input", debouncedApply);
   }
   for (const group of chipGroups) {
@@ -299,6 +497,7 @@ function wireDirectoryFilters() {
     category.value = "";
     status.value = "";
     for (const input of rangeInputs) input.value = "";
+    for (const input of exactInputs) input.value = "";
     for (const group of chipGroups) group.active.clear();
     syncChipButtons();
     applyFilters();
@@ -375,6 +574,78 @@ function wirePlanEditor() {
 
   form?.addEventListener("submit", (event) => {
     if (validatePlanRows()) return;
+    event.preventDefault();
+    root.querySelector(".invalid")?.focus();
+  });
+}
+
+function wireHardwareEditor() {
+  const root = document.querySelector("[data-hardware-editor]");
+  if (!root) return;
+  const rows = root.querySelector("[data-hardware-rows]");
+  const template = root.querySelector("[data-hardware-template]");
+  const add = document.querySelector("[data-add-hardware]");
+  const form = root.closest("form");
+
+  function setFieldError(input, message) {
+    input.classList.toggle("invalid", Boolean(message));
+    input.setCustomValidity(message);
+    let error = input.parentElement?.querySelector(".field-error");
+    if (!message) {
+      error?.remove();
+      return;
+    }
+    if (!error) {
+      error = document.createElement("span");
+      error.className = "field-error";
+      input.parentElement?.appendChild(error);
+    }
+    error.textContent = message;
+  }
+
+  function validateNumberInput(input) {
+    if (!input.value.trim()) {
+      setFieldError(input, "");
+      return true;
+    }
+    const value = parseNumber(input.value);
+    let message = "";
+    if (value === null) message = "Use a number.";
+    else if (value < 0) message = "Use zero or higher.";
+    setFieldError(input, message);
+    return !message;
+  }
+
+  function validateRows() {
+    const inputs = Array.from(root.querySelectorAll("[data-hardware-number]"));
+    return inputs.every(validateNumberInput);
+  }
+
+  add?.addEventListener("click", () => {
+    rows.appendChild(template.content.cloneNode(true));
+    const lastRow = rows.querySelector("[data-hardware-row]:last-child input");
+    lastRow?.focus();
+  });
+
+  root.addEventListener("click", (event) => {
+    const remove = event.target.closest("[data-remove-hardware]");
+    if (!remove) return;
+    const row = remove.closest("[data-hardware-row]");
+    row?.remove();
+  });
+
+  root.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-hardware-number]");
+    if (input) validateNumberInput(input);
+  });
+
+  root.addEventListener("blur", (event) => {
+    const input = event.target.closest("[data-hardware-number]");
+    if (input) validateNumberInput(input);
+  }, true);
+
+  form?.addEventListener("submit", (event) => {
+    if (validateRows()) return;
     event.preventDefault();
     root.querySelector(".invalid")?.focus();
   });
@@ -474,5 +745,6 @@ function wireReorder() {
 document.addEventListener("DOMContentLoaded", () => {
   wireDirectoryFilters();
   wirePlanEditor();
+  wireHardwareEditor();
   wireReorder();
 });

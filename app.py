@@ -304,6 +304,7 @@ def host_from_form(existing_ids: set[str], existing: dict | None = None) -> dict
     host["pros"] = normalize_list(request.form.get("pros", ""))
     host["cons"] = normalize_list(request.form.get("cons", ""))
     host["plans"] = plans_from_form()
+    host["hardware_tiers"] = hardware_tiers_from_form()
     return host
 
 
@@ -312,10 +313,29 @@ def plans_from_form() -> list[dict[str, str]]:
         "name",
         "price_monthly_usd",
         "ram_gb",
+        "cpu_cores",
+        "cpu_allocation",
+        "cpu_model",
+        "cpu_vendor",
+        "advertised_clock_ghz",
+        "boost_clock_ghz",
+        "max_memory_gb",
+        "memory_speed_mhz",
+        "benchmark_score",
+        "storage_type",
+        "panel",
+        "ddos_protection",
+        "modpack_support",
+        "support_notes",
+        "price_notes",
         "player_slots",
         "recommended_players",
         "storage_gb",
         "plan_url",
+        "hardware_tier_ids",
+        "location_tags",
+        "support_channels",
+        "server_types",
         "notes",
     ]
     posted = {field: request.form.getlist(f"plan_{field}") for field in fields}
@@ -329,6 +349,45 @@ def plans_from_form() -> list[dict[str, str]]:
         if any(plan.values()):
             plans.append(plan)
     return plans
+
+
+def hardware_tiers_from_form() -> list[dict[str, str]]:
+    fields = [
+        "id",
+        "name",
+        "cpu_model",
+        "cpu_vendor",
+        "advertised_clock_ghz",
+        "boost_clock_ghz",
+        "cpu_cores",
+        "cpu_allocation",
+        "max_memory_gb",
+        "memory_speed_mhz",
+        "benchmark_score",
+        "storage_type",
+        "panel",
+        "ddos_protection",
+        "modpack_support",
+        "support_channels",
+        "server_types",
+        "support_notes",
+        "price_notes",
+        "locations",
+        "location_tags",
+        "source_urls",
+        "notes",
+    ]
+    posted = {field: request.form.getlist(f"hardware_{field}") for field in fields}
+    length = max((len(values) for values in posted.values()), default=0)
+    tiers = []
+    for index in range(length):
+        tier = {
+            field: (posted[field][index].strip() if index < len(posted[field]) else "")
+            for field in fields
+        }
+        if any(tier.values()):
+            tiers.append(tier)
+    return tiers
 
 
 if __name__ == "__main__":

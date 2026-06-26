@@ -324,7 +324,7 @@ textarea {
 
 .range-grid {
   display: grid;
-  grid-template-columns: repeat(8, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 8px;
   border-top: 1px solid var(--line);
   padding: 10px;
@@ -674,19 +674,22 @@ textarea {
   padding: 8px;
 }
 
-.plan-editor {
+.plan-editor,
+.hardware-editor {
   display: grid;
   gap: 6px;
 }
 
-.plan-rows {
+.plan-rows,
+.hardware-rows {
   display: grid;
   gap: 6px;
 }
 
-.plan-row {
+.plan-row,
+.hardware-row {
   display: grid;
-  grid-template-columns: 1.3fr 0.7fr 0.7fr 0.7fr 0.8fr 0.8fr 1.4fr 1.3fr auto;
+  grid-template-columns: 1.3fr 0.7fr 0.7fr 0.7fr 0.8fr 0.8fr 1fr auto;
   gap: 8px;
   align-items: end;
   border: 1px solid var(--line);
@@ -694,7 +697,8 @@ textarea {
   padding: 10px;
 }
 
-.plan-rows .plan-row:nth-child(even) {
+.plan-rows .plan-row:nth-child(even),
+.hardware-rows .hardware-row:nth-child(even) {
   background: #fbfcfa;
 }
 
@@ -706,8 +710,32 @@ textarea {
   padding: 6px 8px;
 }
 
-.plan-row label span {
+.plan-row > label > span {
   display: none;
+}
+
+.row-extra {
+  grid-column: 1 / -2;
+  border: 1px solid var(--line);
+  background: var(--muted-surface);
+}
+
+.row-extra summary {
+  cursor: pointer;
+  font-weight: 800;
+  padding: 7px 8px;
+}
+
+.row-extra-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding: 10px;
+}
+
+.row-extra label span {
+  display: block;
 }
 
 input.invalid {
@@ -803,7 +831,7 @@ input.invalid {
 
 .quick-facts {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 1px;
   border: 1px solid var(--line);
   background: var(--line);
@@ -865,6 +893,35 @@ input.invalid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.tier-details-list {
+  display: grid;
+  gap: 8px;
+}
+
+.tier-details {
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.tier-details summary {
+  cursor: pointer;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 9px 10px;
+}
+
+.tier-details summary span {
+  color: var(--muted);
+}
+
+.tier-details .spec-list,
+.tier-details p,
+.tier-details .source-list {
+  margin: 10px;
 }
 
 .inline-table {
@@ -988,12 +1045,17 @@ dd {
   }
 
   .plan-row,
+  .hardware-row,
   .plan-row-head {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .plan-row label span {
+  .plan-row > label > span {
     display: block;
+  }
+
+  .row-extra {
+    grid-column: 1 / -1;
   }
 
   .plan-row-head {

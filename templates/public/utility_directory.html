@@ -12,6 +12,7 @@
         <option value="tier">Tier</option>
         <option value="price-asc">Lowest price</option>
         <option value="plan-ram-desc">Plan RAM high to low</option>
+        <option value="cpu-cores-desc">CPU cores high to low</option>
         <option value="players-desc">Player slots high to low</option>
         <option value="base-ghz-desc">Base GHz high to low</option>
         <option value="peak-ghz-desc">Peak GHz high to low</option>
@@ -82,6 +83,10 @@
         <input data-range-key="planRam" data-range-bound="min" data-range-param="planRamMin" type="number" step="1" inputmode="numeric">
       </label>
       <label>
+        <span>CPU cores exact</span>
+        <input data-exact-key="cores" data-exact-param="cores" type="number" step="0.5" inputmode="decimal">
+      </label>
+      <label>
         <span>Player slots min</span>
         <input data-range-key="players" data-range-bound="min" data-range-param="playersMin" type="number" step="1" inputmode="numeric">
       </label>
@@ -141,8 +146,10 @@
     </thead>
     <tbody>
       {% for host in hosts %}
+        {% set default_offer = host.public_offers[0] if host.public_offers else {} %}
         <tr class="host-row"
-            data-search="{{ host.name }} {{ host.summary }} {{ host.cpu_model }} {{ host.cpu_vendor }} {{ host.locations|join(' ') }} {{ host.location_tags|join(' ') }} {{ host.tags|join(' ') }} {{ host.support_channels|join(' ') }} {{ host.support_notes }} {{ host.category_picks|join(' ') }} {% for plan in host.plans %} {{ plan.name }} {{ plan.price_monthly_usd }} {{ plan.ram_gb }} {{ plan.player_slots }} {{ plan.notes }} {% endfor %}"
+            data-offers='{{ host.public_offers|tojson }}'
+            data-search="{{ host.name }} {{ host.summary }} {{ host.cpu_model }} {{ host.cpu_vendor }} {{ host.locations|join(' ') }} {{ host.location_tags|join(' ') }} {{ host.tags|join(' ') }} {{ host.support_channels|join(' ') }} {{ host.support_notes }} {{ host.category_picks|join(' ') }} {% for tier in host.hardware_tiers %} {{ tier.name }} {{ tier.cpu_model }} {{ tier.cpu_cores }} {{ tier.location_tags|join(' ') }} {{ tier.locations|join(' ') }} {{ tier.panel }} {{ tier.ddos_protection }} {{ tier.modpack_support }} {{ tier.support_channels|join(' ') }} {{ tier.server_types|join(' ') }} {% endfor %} {% for offer in host.public_offers %} {{ offer.planName }} {{ offer.hardwareName }} {{ offer.price }} {{ offer.planRam }} {{ offer.cores }} {{ offer.players }} {{ offer.cpuModel }} {{ offer.locationTags|join(' ') }} {{ offer.panel }} {{ offer.ddosProtection }} {{ offer.modpackSupport }} {{ offer.supportChannels|join(' ') }} {{ offer.serverTypes|join(' ') }} {{ offer.notes }} {{ offer.hardwareNotes }} {% endfor %}"
             data-name="{{ host.name|lower }}"
             data-rank="{{ host.rank }}"
             data-tier="{{ host.recommendation_tier }}"
@@ -155,6 +162,7 @@
             data-benchmark="{{ host.benchmark_score }}"
             data-price="{{ host.starting_price_usd }}"
             data-plan-ram="{{ host.max_plan_ram_gb }}"
+            data-cores="{{ host.max_cpu_cores }}"
             data-players="{{ host.max_plan_player_slots }}"
             data-recommended-players="{{ host.max_recommended_players }}"
             data-verified="{{ host.last_verified }}"
@@ -174,45 +182,55 @@
           </td>
           <td data-label="Tier"><span class="badge tier-{{ host.recommendation_tier }}">{{ tier_labels[host.recommendation_tier] }}</span></td>
           <td data-label="Regions">
-            {% for tag in host.location_tags %}
-              <span class="pill location-pill">{{ tag }}</span>
-            {% else %}
-              <span class="muted">Unknown</span>
-            {% endfor %}
+            <div class="pill-row compact-pills" data-selected-regions>
+              {% for tag in default_offer.get('locationTags', host.location_tags) %}
+                <span class="pill location-pill">{{ tag }}</span>
+              {% else %}
+                <span class="muted">Unknown</span>
+              {% endfor %}
+            </div>
+            <small data-selected-tier-label>{{ default_offer.get("label", "Default tier") }}</small>
           </td>
           <td data-label="Hardware">
-            <strong>{{ host.cpu_model or "Unknown CPU" }}</strong>
+            <strong data-selected-cpu>{{ default_offer.get("cpuModel") or host.cpu_model or "Unknown CPU" }}</strong>
+            <small data-selected-hardware>{{ default_offer.get("hardwareName", "Default hardware") }}</small>
             <dl class="mini-specs">
-              <div><dt>Base</dt><dd>{{ host.advertised_clock_ghz or "-" }} GHz</dd></div>
-              <div><dt>Peak</dt><dd>{{ host.boost_clock_ghz or "-" }} GHz</dd></div>
-              <div><dt>Max</dt><dd>{{ host.max_memory_gb or "-" }} GB</dd></div>
-              <div><dt>Mem</dt><dd>{{ host.memory_speed_mhz or "-" }} MHz</dd></div>
-              <div><dt>Bench</dt><dd>{{ host.benchmark_score or "-" }}</dd></div>
+              <div><dt>Cores</dt><dd data-selected-cores>{{ default_offer.get("cores") or "-" }}</dd></div>
+              <div><dt>Base</dt><dd data-selected-base>{{ default_offer.get("baseGhz") or "-" }} GHz</dd></div>
+              <div><dt>Peak</dt><dd data-selected-peak>{{ default_offer.get("peakGhz") or "-" }} GHz</dd></div>
+              <div><dt>Max</dt><dd data-selected-max-memory>{{ default_offer.get("maxMemory") or "-" }} GB</dd></div>
+              <div><dt>Mem</dt><dd data-selected-memory>{{ default_offer.get("memorySpeed") or "-" }} MHz</dd></div>
+              <div><dt>Bench</dt><dd data-selected-benchmark>{{ default_offer.get("benchmark") or "-" }}</dd></div>
             </dl>
           </td>
           <td data-label="Plans">
-            <strong>
-              {% if host.starting_price_usd %}${{ host.starting_price_usd }}/mo{% else %}No price{% endif %}
+            <strong data-selected-price>
+              {% if default_offer.get("price") %}${{ default_offer.get("price") }}/mo{% else %}No price{% endif %}
             </strong>
-            <small>
-              {{ host.plan_count }} plan{% if host.plan_count != 1 %}s{% endif %}
-              - max {{ host.max_plan_ram_gb or "-" }} GB RAM
-              - {{ host.max_plan_player_slots or "-" }} slots
+            <small data-selected-plan>{{ default_offer.get("planName", "Plan") }}</small>
+            <small data-selected-plan-detail>
+              {{ default_offer.get("planRam") or "-" }} GB RAM
+              - {{ default_offer.get("players") or "-" }} slots
+              - {{ default_offer.get("storage") or "-" }} GB storage
             </small>
-            {% if host.lowest_price_per_gb_usd %}
-              <small>${{ host.lowest_price_per_gb_usd }}/GB lowest</small>
-            {% endif %}
+            <small class="offer-count">{{ host.plan_count }} plan{% if host.plan_count != 1 %}s{% endif %}, {{ host.hardware_tier_count or 1 }} hardware tier{% if (host.hardware_tier_count or 1) != 1 %}s{% endif %}</small>
           </td>
           <td data-label="Support">
-            {% for channel in host.support_channels %}
-              <span class="pill support-pill">{{ channel }}</span>
-            {% else %}
-              <span class="muted">Unknown</span>
-            {% endfor %}
-            {% if host.support_notes %}<small>{{ host.support_notes }}</small>{% endif %}
+            <div class="pill-row compact-pills" data-selected-support>
+              {% for channel in default_offer.get('supportChannels', host.support_channels) %}
+                <span class="pill support-pill">{{ channel }}</span>
+              {% else %}
+                <span class="muted">Unknown</span>
+              {% endfor %}
+            </div>
+            <small data-selected-features>
+              {{ default_offer.get("panel") or host.panel or "Unknown panel" }}
+              {% if default_offer.get("ddosProtection") or host.ddos_protection %} - {{ default_offer.get("ddosProtection") or host.ddos_protection }}{% endif %}
+            </small>
+            <small data-selected-support-note>{{ default_offer.get("supportNotes") or host.support_notes }}</small>
           </td>
           <td data-label="Status">{{ status_labels[host.status] }}</td>
-          <td data-label="Open"><a href="{{ root_prefix }}hosts/{{ host.id }}.html">Open</a></td>
+          <td data-label="Open"><a data-selected-open href="{{ root_prefix }}hosts/{{ host.id }}.html">Open</a></td>
         </tr>
       {% endfor %}
     </tbody>
