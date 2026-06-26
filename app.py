@@ -144,13 +144,24 @@ def new_host():
         host = host_from_form(existing_ids={item["id"] for item in hosts})
         if not host["name"]:
             flash("Host name is required.", "error")
-            return render_template("host_form.html", host=host, mode="new")
+            return render_template(
+                "host_form.html",
+                host=host,
+                plan_tiers=editor_plan_tiers(host),
+                mode="new",
+            )
         hosts.append(host)
         save_hosts(hosts)
         flash(f"Added {host['name']}.", "success")
         return redirect(url_for("edit_host", host_id=host["id"]))
 
-    return render_template("host_form.html", host=DEFAULT_HOST.copy(), mode="new")
+    host = DEFAULT_HOST.copy()
+    return render_template(
+        "host_form.html",
+        host=host,
+        plan_tiers=editor_plan_tiers(host),
+        mode="new",
+    )
 
 
 @app.route("/hosts/<host_id>/edit", methods=["GET", "POST"])
@@ -164,7 +175,12 @@ def edit_host(host_id: str):
         updated = host_from_form(existing_ids={item["id"] for item in hosts}, existing=host)
         if not updated["name"]:
             flash("Host name is required.", "error")
-            return render_template("host_form.html", host=updated, mode="edit")
+            return render_template(
+                "host_form.html",
+                host=updated,
+                plan_tiers=editor_plan_tiers(updated),
+                mode="edit",
+            )
         for index, item in enumerate(hosts):
             if item["id"] == host_id:
                 hosts[index] = updated
@@ -173,7 +189,12 @@ def edit_host(host_id: str):
         flash(f"Saved {updated['name']}.", "success")
         return redirect(url_for("edit_host", host_id=updated["id"]))
 
-    return render_template("host_form.html", host=host, mode="edit")
+    return render_template(
+        "host_form.html",
+        host=host,
+        plan_tiers=editor_plan_tiers(host),
+        mode="edit",
+    )
 
 
 @app.route("/hosts/<host_id>/delete", methods=["GET", "POST"])
@@ -304,8 +325,50 @@ def host_from_form(existing_ids: set[str], existing: dict | None = None) -> dict
     host["pros"] = normalize_list(request.form.get("pros", ""))
     host["cons"] = normalize_list(request.form.get("cons", ""))
     host["plans"] = plans_from_form()
-    host["hardware_tiers"] = hardware_tiers_from_form()
+    host["hardware_tiers"] = []
     return host
+
+
+def editor_plan_tiers(host: dict) -> list[dict]:
+    if host.get("hardware_tiers") and host.get("public_offers"):
+        return [plan_from_public_offer(offer) for offer in host["public_offers"]]
+    return host.get("plans") or [{}]
+
+
+def plan_from_public_offer(offer: dict) -> dict:
+    name = offer.get("label") or offer.get("planName") or "Tier"
+    notes = "\n".join(
+        part for part in [offer.get("notes", ""), offer.get("hardwareNotes", "")] if part
+    )
+    return {
+        "name": name,
+        "price_monthly_usd": offer.get("price", ""),
+        "ram_gb": offer.get("planRam", ""),
+        "cpu_cores": offer.get("cores", ""),
+        "cpu_allocation": offer.get("cpuAllocation", ""),
+        "cpu_model": offer.get("cpuModel", ""),
+        "cpu_vendor": offer.get("cpuVendor", ""),
+        "advertised_clock_ghz": offer.get("baseGhz", ""),
+        "boost_clock_ghz": offer.get("peakGhz", ""),
+        "max_memory_gb": offer.get("maxMemory", ""),
+        "memory_speed_mhz": offer.get("memorySpeed", ""),
+        "benchmark_score": offer.get("benchmark", ""),
+        "storage_type": offer.get("storageType", ""),
+        "panel": offer.get("panel", ""),
+        "ddos_protection": offer.get("ddosProtection", ""),
+        "modpack_support": offer.get("modpackSupport", ""),
+        "support_notes": offer.get("supportNotes", ""),
+        "price_notes": offer.get("priceNotes", ""),
+        "player_slots": offer.get("players", ""),
+        "recommended_players": offer.get("recommendedPlayers", ""),
+        "storage_gb": offer.get("storage", ""),
+        "plan_url": offer.get("url", ""),
+        "notes": notes,
+        "hardware_tier_ids": [],
+        "location_tags": offer.get("locationTags", []),
+        "support_channels": offer.get("supportChannels", []),
+        "server_types": offer.get("serverTypes", []),
+    }
 
 
 def plans_from_form() -> list[dict[str, str]]:
@@ -349,45 +412,6 @@ def plans_from_form() -> list[dict[str, str]]:
         if any(plan.values()):
             plans.append(plan)
     return plans
-
-
-def hardware_tiers_from_form() -> list[dict[str, str]]:
-    fields = [
-        "id",
-        "name",
-        "cpu_model",
-        "cpu_vendor",
-        "advertised_clock_ghz",
-        "boost_clock_ghz",
-        "cpu_cores",
-        "cpu_allocation",
-        "max_memory_gb",
-        "memory_speed_mhz",
-        "benchmark_score",
-        "storage_type",
-        "panel",
-        "ddos_protection",
-        "modpack_support",
-        "support_channels",
-        "server_types",
-        "support_notes",
-        "price_notes",
-        "locations",
-        "location_tags",
-        "source_urls",
-        "notes",
-    ]
-    posted = {field: request.form.getlist(f"hardware_{field}") for field in fields}
-    length = max((len(values) for values in posted.values()), default=0)
-    tiers = []
-    for index in range(length):
-        tier = {
-            field: (posted[field][index].strip() if index < len(posted[field]) else "")
-            for field in fields
-        }
-        if any(tier.values()):
-            tiers.append(tier)
-    return tiers
 
 
 if __name__ == "__main__":

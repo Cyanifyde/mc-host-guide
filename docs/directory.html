@@ -31,135 +31,180 @@
   </div>
 </section>
 
-<section class="utility-panel" data-directory-filters>
-  <div class="utility-controls primary-controls">
-    <label class="search-wide">
-      <span>Search</span>
-      <input data-filter-search placeholder="host, CPU, plan, region, support">
-    </label>
-    <label>
-      <span>Sort</span>
-      <select data-filter-sort>
-        <option value="rank">Rank</option>
-        <option value="name">Name</option>
-        <option value="tier">Tier</option>
-        <option value="price-asc">Lowest price</option>
-        <option value="plan-ram-desc">Plan RAM high to low</option>
-        <option value="cpu-cores-desc">CPU cores high to low</option>
-        <option value="players-desc">Player slots high to low</option>
-        <option value="base-ghz-desc">Base GHz high to low</option>
-        <option value="peak-ghz-desc">Peak GHz high to low</option>
-        <option value="max-memory-desc">Max memory high to low</option>
-        <option value="memory-speed-desc">Memory MHz high to low</option>
-        <option value="benchmark-desc">Benchmark high to low</option>
-        <option value="verified-desc">Recently verified</option>
-      </select>
-    </label>
-    <label>
-      <span>Tier</span>
-      <select data-filter-tier>
-        <option value="">All tiers</option>
-          <option value="top_pick">Top pick</option>
-          <option value="recommended">Recommended</option>
-          <option value="situational">Situational</option>
-          <option value="avoid">Avoid</option>
-          <option value="unreviewed">Unreviewed</option>
-      </select>
-    </label>
-    <label>
-      <span>Category</span>
-      <select data-filter-category>
-        <option value="">All categories</option>
-          <option value="overall">Overall</option>
-          <option value="budget">Budget</option>
-          <option value="performance">Performance</option>
-          <option value="modded">Modded</option>
-          <option value="free">Free</option>
-          <option value="small_servers">Small servers</option>
-          <option value="large_servers">Large servers</option>
-          <option value="regional">Regional</option>
-      </select>
-    </label>
-    <label>
-      <span>Status</span>
-      <select data-filter-status>
-        <option value="">All statuses</option>
-          <option value="unreviewed">Unreviewed</option>
-          <option value="active">Active</option>
-          <option value="likely_active">Likely active</option>
-          <option value="uncertain">Uncertain</option>
-          <option value="avoid">Avoid</option>
-          <option value="inactive">Inactive</option>
-      </select>
-    </label>
-  </div>
+<div class="directory-layout">
+  <aside class="utility-panel filter-sidebar" data-directory-filters>
+    <div class="sidebar-filter-head">
+      <strong>Filters</strong>
+      <button class="link-button" type="button" data-clear-filters>Clear</button>
+    </div>
 
-  <details class="filter-details" open>
-    <summary>Specs, plans, and capacity</summary>
-    <div class="range-grid">
+    <div class="utility-controls sidebar-controls">
       <label>
-        <span>Base GHz min</span>
-        <input data-range-key="baseGhz" data-range-bound="min" data-range-param="baseMin" type="number" step="0.1" inputmode="decimal">
+        <span>Search</span>
+        <input data-filter-search placeholder="host, CPU, plan, region, support">
       </label>
       <label>
-        <span>Peak GHz min</span>
-        <input data-range-key="peakGhz" data-range-bound="min" data-range-param="peakMin" type="number" step="0.1" inputmode="decimal">
-      </label>
-      <label>
-        <span>Max memory GB min</span>
-        <input data-range-key="maxMemory" data-range-bound="min" data-range-param="memMin" type="number" step="1" inputmode="numeric">
-      </label>
-      <label>
-        <span>Memory MHz min</span>
-        <input data-range-key="memorySpeed" data-range-bound="min" data-range-param="memSpeedMin" type="number" step="100" inputmode="numeric">
-      </label>
-      <label>
-        <span>Benchmark min</span>
-        <input data-range-key="benchmark" data-range-bound="min" data-range-param="benchMin" type="number" step="1" inputmode="numeric">
-      </label>
-      <label>
-        <span>Starting price max</span>
-        <input data-range-key="price" data-range-bound="max" data-range-param="priceMax" type="number" step="0.01" inputmode="decimal">
-      </label>
-      <label>
-        <span>Plan RAM GB min</span>
-        <input data-range-key="planRam" data-range-bound="min" data-range-param="planRamMin" type="number" step="1" inputmode="numeric">
-      </label>
-      <label>
-        <span>CPU cores exact</span>
-        <input data-exact-key="cores" data-exact-param="cores" type="number" step="0.5" inputmode="decimal">
-      </label>
-      <label>
-        <span>Player slots min</span>
-        <input data-range-key="players" data-range-bound="min" data-range-param="playersMin" type="number" step="1" inputmode="numeric">
+        <span>Sort</span>
+        <select data-filter-sort>
+          <option value="rank">Rank</option>
+          <option value="name">Name</option>
+          <option value="tier">Tier</option>
+          <option value="price-asc">Lowest price</option>
+          <option value="plan-ram-desc">Plan RAM high to low</option>
+          <option value="cpu-cores-desc">CPU cores high to low</option>
+          <option value="players-desc">Player slots high to low</option>
+          <option value="base-ghz-desc">Base GHz high to low</option>
+          <option value="peak-ghz-desc">Peak GHz high to low</option>
+          <option value="max-memory-desc">Max memory high to low</option>
+          <option value="memory-speed-desc">Memory MHz high to low</option>
+          <option value="benchmark-desc">Benchmark high to low</option>
+          <option value="verified-desc">Recently verified</option>
+        </select>
       </label>
     </div>
-  </details>
 
-  <div class="filter-chip-groups">
-    <div class="tag-cloud" aria-label="Tags">
-      <span class="chip-label">Tags</span>
-        <span class="muted">No tags yet.</span>
+    <details class="filter-details" open>
+      <summary>Editorial</summary>
+      <div class="sidebar-select-grid">
+        <label>
+          <span>Tier</span>
+          <select data-filter-tier>
+            <option value="">All tiers</option>
+              <option value="top_pick">Top pick</option>
+              <option value="recommended">Recommended</option>
+              <option value="situational">Situational</option>
+              <option value="avoid">Avoid</option>
+              <option value="unreviewed">Unreviewed</option>
+          </select>
+        </label>
+        <label>
+          <span>Category</span>
+          <select data-filter-category>
+            <option value="">All categories</option>
+              <option value="overall">Overall</option>
+              <option value="budget">Budget</option>
+              <option value="performance">Performance</option>
+              <option value="modded">Modded</option>
+              <option value="free">Free</option>
+              <option value="small_servers">Small servers</option>
+              <option value="large_servers">Large servers</option>
+              <option value="regional">Regional</option>
+          </select>
+        </label>
+        <label>
+          <span>Status</span>
+          <select data-filter-status>
+            <option value="">All statuses</option>
+              <option value="unreviewed">Unreviewed</option>
+              <option value="active">Active</option>
+              <option value="likely_active">Likely active</option>
+              <option value="uncertain">Uncertain</option>
+              <option value="avoid">Avoid</option>
+              <option value="inactive">Inactive</option>
+          </select>
+        </label>
+      </div>
+    </details>
+
+    <details class="filter-details" open>
+      <summary>Specs, plans, and capacity</summary>
+      <div class="range-grid sidebar-ranges">
+        <label class="range-control">
+          <span>Base GHz min</span>
+          <div class="range-pair">
+            <input data-range-key="baseGhz" data-range-bound="min" data-range-param="baseMin" type="number" step="0.1" inputmode="decimal">
+            <input class="range-slider" data-slider-target="baseMin" type="range" min="0" max="7" step="0.1" value="0" aria-label="Base GHz minimum slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>Peak GHz min</span>
+          <div class="range-pair">
+            <input data-range-key="peakGhz" data-range-bound="min" data-range-param="peakMin" type="number" step="0.1" inputmode="decimal">
+            <input class="range-slider" data-slider-target="peakMin" type="range" min="0" max="7" step="0.1" value="0" aria-label="Peak GHz minimum slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>Max memory GB min</span>
+          <div class="range-pair">
+            <input data-range-key="maxMemory" data-range-bound="min" data-range-param="memMin" type="number" step="1" inputmode="numeric">
+            <input class="range-slider" data-slider-target="memMin" type="range" min="0" max="512" step="1" value="0" aria-label="Max memory minimum slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>Memory MHz min</span>
+          <div class="range-pair">
+            <input data-range-key="memorySpeed" data-range-bound="min" data-range-param="memSpeedMin" type="number" step="100" inputmode="numeric">
+            <input class="range-slider" data-slider-target="memSpeedMin" type="range" min="0" max="8000" step="100" value="0" aria-label="Memory speed minimum slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>Benchmark min</span>
+          <div class="range-pair">
+            <input data-range-key="benchmark" data-range-bound="min" data-range-param="benchMin" type="number" step="1" inputmode="numeric">
+            <input class="range-slider" data-slider-target="benchMin" type="range" min="0" max="6000" step="50" value="0" aria-label="Benchmark minimum slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>Starting price max</span>
+          <div class="range-pair">
+            <input data-range-key="price" data-range-bound="max" data-range-param="priceMax" type="number" step="0.01" inputmode="decimal">
+            <input class="range-slider" data-slider-target="priceMax" type="range" min="0" max="200" step="1" value="0" aria-label="Starting price maximum slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>Plan RAM GB min</span>
+          <div class="range-pair">
+            <input data-range-key="planRam" data-range-bound="min" data-range-param="planRamMin" type="number" step="1" inputmode="numeric">
+            <input class="range-slider" data-slider-target="planRamMin" type="range" min="0" max="256" step="1" value="0" aria-label="Plan RAM minimum slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>CPU cores exact</span>
+          <div class="range-pair">
+            <input data-exact-key="cores" data-exact-param="cores" type="number" step="0.5" inputmode="decimal">
+            <input class="range-slider" data-slider-target="cores" type="range" min="0" max="16" step="0.5" value="0" aria-label="CPU cores exact slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>Player slots min</span>
+          <div class="range-pair">
+            <input data-range-key="players" data-range-bound="min" data-range-param="playersMin" type="number" step="1" inputmode="numeric">
+            <input class="range-slider" data-slider-target="playersMin" type="range" min="0" max="500" step="5" value="0" aria-label="Player slots minimum slider">
+          </div>
+        </label>
+      </div>
+    </details>
+
+    <div class="filter-chip-groups">
+      <details class="filter-details chip-details" open>
+        <summary>Tags</summary>
+        <div class="tag-cloud" aria-label="Tags">
+            <span class="muted">No tags yet.</span>
+        </div>
+      </details>
+      <details class="filter-details chip-details" open>
+        <summary>Regions</summary>
+        <div class="tag-cloud" aria-label="Regions">
+            <span class="muted">No regions yet.</span>
+        </div>
+      </details>
+      <details class="filter-details chip-details">
+        <summary>Support</summary>
+        <div class="tag-cloud" aria-label="Support channels">
+            <span class="muted">No support tags yet.</span>
+        </div>
+      </details>
     </div>
-    <div class="tag-cloud" aria-label="Regions">
-      <span class="chip-label">Regions</span>
-        <span class="muted">No regions yet.</span>
+
+    <div class="active-filters" data-active-filters aria-label="Active filters"></div>
+
+    <div class="result-line">
+      <span><strong data-result-count aria-live="polite">0</strong> matching hosts</span>
     </div>
-    <div class="tag-cloud" aria-label="Support channels">
-      <span class="chip-label">Support</span>
-        <span class="muted">No support tags yet.</span>
-    </div>
-  </div>
+  </aside>
 
-  <div class="active-filters" data-active-filters aria-label="Active filters"></div>
-
-  <div class="result-line">
-    <span><strong data-result-count aria-live="polite">0</strong> matching hosts</span>
-    <button class="link-button" type="button" data-clear-filters>Clear filters</button>
-  </div>
-</section>
-
-<section class="directory-table-shell">
+  <section class="directory-results">
+    <section class="directory-table-shell">
   <table class="directory-table" data-directory-list>
     <caption class="sr-only">Minecraft hosting providers with specs, regions, plans, and support details</caption>
     <thead>
@@ -182,6 +227,8 @@
     <strong>No matching hosts.</strong>
     <span>Clear filters or use fewer tags/spec ranges.</span>
   </div>
-</section>  </main>
+</section>
+  </section>
+</div>  </main>
 </body>
 </html>

@@ -135,6 +135,7 @@ DEFAULT_HOST: dict[str, Any] = {
     "public_offers": [],
     "plan_count": 0,
     "hardware_tier_count": 0,
+    "tier_option_count": 0,
     "starting_price_usd": "",
     "lowest_price_per_gb_usd": "",
     "max_plan_ram_gb": "",
@@ -406,7 +407,7 @@ def plan_hardware_tier(plan: dict[str, Any], host: dict[str, Any]) -> dict[str, 
     plan_name = str(plan.get("name", "") or "Plan").strip()
     return {
         "id": f"plan-{slugify(plan_name)}",
-        "name": f"{plan_name} hardware",
+        "name": "Tier specs",
         "cpu_model": plan.get("cpu_model", "") or host.get("cpu_model", ""),
         "cpu_vendor": plan.get("cpu_vendor", "") or host.get("cpu_vendor", ""),
         "advertised_clock_ghz": plan.get("advertised_clock_ghz", "")
@@ -489,7 +490,9 @@ def build_public_offers(host: dict[str, Any]) -> list[dict[str, Any]]:
                 price_per_gb = format_metric(price_number / ram_number)
 
             plan_name = offer_metric(plan, "name") or "Plan"
-            hardware_name = offer_metric(tier, "name") or offer_metric(tier, "cpu_model") or "Hardware"
+            hardware_name = offer_metric(tier, "name") or offer_metric(tier, "cpu_model") or "Tier specs"
+            embedded_tier = tier.get("id") == "host-default" or str(tier.get("id", "")).startswith("plan-")
+            label = plan_name if embedded_tier else f"{plan_name} / {hardware_name}"
             support_channels = merged_offer_list(plan, tier, host, "support_channels")
             server_types = merged_offer_list(plan, tier, host, "server_types")
             offers.append(
@@ -497,7 +500,7 @@ def build_public_offers(host: dict[str, Any]) -> list[dict[str, Any]]:
                     "id": f"{plan_index}-{tier['id']}",
                     "planName": plan_name,
                     "hardwareName": hardware_name,
-                    "label": f"{plan_name} / {hardware_name}",
+                    "label": label,
                     "price": price,
                     "planRam": ram,
                     "players": offer_metric(plan, "player_slots"),
@@ -553,6 +556,7 @@ def apply_plan_summary(host: dict[str, Any]) -> None:
 
     host["plan_count"] = len(host["plans"])
     host["hardware_tier_count"] = len(host.get("hardware_tiers", []))
+    host["tier_option_count"] = len(offers)
     host["starting_price_usd"] = format_metric(min(prices) if prices else None)
     host["lowest_price_per_gb_usd"] = format_metric(min(price_per_gb) if price_per_gb else None)
     host["max_plan_ram_gb"] = format_metric(max(rams) if rams else None)

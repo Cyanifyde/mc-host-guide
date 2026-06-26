@@ -310,6 +310,51 @@ textarea {
   padding: 10px;
 }
 
+.directory-layout {
+  display: grid;
+  grid-template-columns: 292px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.filter-sidebar {
+  align-self: start;
+  max-height: calc(100vh - 72px);
+  overflow: auto;
+}
+
+.directory-results {
+  min-width: 0;
+}
+
+.sidebar-filter-head,
+.sidebar-select-grid,
+.sidebar-controls {
+  display: grid;
+  gap: 8px;
+}
+
+.sidebar-filter-head {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+}
+
+.sidebar-filter-head strong {
+  font-size: 1rem;
+}
+
+.utility-controls.sidebar-controls {
+  grid-template-columns: 1fr;
+}
+
+.filter-details > .sidebar-select-grid {
+  border-top: 1px solid var(--line);
+  padding: 10px;
+}
+
 .filter-details {
   border: 1px solid var(--line);
   background: var(--muted-surface);
@@ -330,10 +375,30 @@ textarea {
   padding: 10px;
 }
 
+.range-grid.sidebar-ranges {
+  grid-template-columns: 1fr;
+}
+
+.range-pair {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.range-pair input[type="number"] {
+  min-width: 0;
+}
+
+.range-slider {
+  accent-color: var(--accent);
+  min-width: 0;
+  padding: 0;
+}
+
 .filter-chip-groups {
   display: grid;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 0;
 }
 
 .tag-cloud {
@@ -341,6 +406,11 @@ textarea {
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+}
+
+.chip-details .tag-cloud {
+  border-top: 1px solid var(--line);
+  padding: 10px;
 }
 
 .chip-label {
@@ -441,6 +511,9 @@ textarea {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+  padding-top: 8px;
   color: var(--muted);
   font-size: 0.86rem;
 }
@@ -622,6 +695,30 @@ textarea {
   padding: 16px;
 }
 
+.collapsible-section {
+  padding: 0;
+}
+
+.collapsible-section > details > summary {
+  cursor: pointer;
+  padding: 16px;
+}
+
+.collapsible-section > details > summary strong,
+.collapsible-section > details > summary small {
+  display: block;
+}
+
+.collapsible-section > details > summary small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.collapsible-section .form-grid {
+  padding: 0 16px 16px;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -674,22 +771,28 @@ textarea {
   padding: 8px;
 }
 
-.plan-editor,
-.hardware-editor {
+.plan-editor {
   display: grid;
   gap: 6px;
 }
 
-.plan-rows,
-.hardware-rows {
+.plan-rows {
   display: grid;
   gap: 6px;
 }
 
-.plan-row,
-.hardware-row {
+.plan-row {
   display: grid;
-  grid-template-columns: 1.3fr 0.7fr 0.7fr 0.7fr 0.8fr 0.8fr 1fr auto;
+  grid-template-columns:
+    minmax(150px, 1.25fr)
+    0.65fr
+    0.65fr
+    minmax(150px, 1fr)
+    0.55fr
+    minmax(120px, 0.9fr)
+    0.65fr
+    minmax(110px, 0.9fr)
+    auto;
   gap: 8px;
   align-items: end;
   border: 1px solid var(--line);
@@ -697,8 +800,7 @@ textarea {
   padding: 10px;
 }
 
-.plan-rows .plan-row:nth-child(even),
-.hardware-rows .hardware-row:nth-child(even) {
+.plan-rows .plan-row:nth-child(even) {
   background: #fbfcfa;
 }
 
@@ -1024,11 +1126,17 @@ dd {
   .filter-bar,
   .utility-controls,
   .utility-controls.primary-controls,
+  .directory-layout,
   .range-grid,
   .form-grid,
   .detail-grid,
   .methodology {
     grid-template-columns: 1fr;
+  }
+
+  .filter-sidebar {
+    position: static;
+    max-height: none;
   }
 
   .form-workspace {
@@ -1045,7 +1153,6 @@ dd {
   }
 
   .plan-row,
-  .hardware-row,
   .plan-row-head {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

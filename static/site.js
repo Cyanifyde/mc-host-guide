@@ -29,6 +29,7 @@ function wireDirectoryFilters() {
   const activeFilterRoot = root.querySelector("[data-active-filters]");
   const rangeInputs = Array.from(root.querySelectorAll("[data-range-key]"));
   const exactInputs = Array.from(root.querySelectorAll("[data-exact-key]"));
+  const sliderInputs = Array.from(root.querySelectorAll("[data-slider-target]"));
   const sortButtons = Array.from(document.querySelectorAll("[data-sort-button]"));
   const rows = Array.from(body.querySelectorAll(".host-row"));
 
@@ -81,6 +82,27 @@ function wireDirectoryFilters() {
       min: min ? parseNumber(min.value) : null,
       max: max ? parseNumber(max.value) : null,
     };
+  }
+
+  function pairedSliderControl(slider) {
+    const target = slider.dataset.sliderTarget;
+    return root.querySelector(`[data-range-param="${target}"], [data-exact-param="${target}"]`);
+  }
+
+  function sliderForInput(input) {
+    const param = input.dataset.rangeParam || input.dataset.exactParam;
+    if (!param) return null;
+    return root.querySelector(`[data-slider-target="${param}"]`);
+  }
+
+  function syncSliderFromInput(input) {
+    const slider = sliderForInput(input);
+    if (!slider) return;
+    slider.value = input.value || slider.min || "0";
+  }
+
+  function syncSlidersFromInputs() {
+    for (const input of [...rangeInputs, ...exactInputs]) syncSliderFromInput(input);
   }
 
   function offerMetric(offer, key) {
@@ -280,6 +302,7 @@ function wireDirectoryFilters() {
       }
     }
     syncChipButtons();
+    syncSlidersFromInputs();
     syncSortButtons();
   }
 
@@ -421,6 +444,7 @@ function wireDirectoryFilters() {
       const label = input.closest("label")?.querySelector("span")?.textContent || "Range";
       addFilterChip(label, input.value, () => {
         input.value = "";
+        syncSliderFromInput(input);
         applyFilters();
       });
     }
@@ -429,6 +453,7 @@ function wireDirectoryFilters() {
       const label = input.closest("label")?.querySelector("span")?.textContent || "Exact";
       addFilterChip(label, input.value, () => {
         input.value = "";
+        syncSliderFromInput(input);
         applyFilters();
       });
     }
@@ -467,10 +492,24 @@ function wireDirectoryFilters() {
     input.addEventListener("change", applyFilters);
   }
   for (const input of rangeInputs) {
-    input.addEventListener("input", debouncedApply);
+    input.addEventListener("input", () => {
+      syncSliderFromInput(input);
+      debouncedApply();
+    });
   }
   for (const input of exactInputs) {
-    input.addEventListener("input", debouncedApply);
+    input.addEventListener("input", () => {
+      syncSliderFromInput(input);
+      debouncedApply();
+    });
+  }
+  for (const slider of sliderInputs) {
+    slider.addEventListener("input", () => {
+      const input = pairedSliderControl(slider);
+      if (!input) return;
+      input.value = slider.value === slider.min ? "" : slider.value;
+      debouncedApply();
+    });
   }
   for (const group of chipGroups) {
     for (const button of group.buttons) {
@@ -498,6 +537,7 @@ function wireDirectoryFilters() {
     status.value = "";
     for (const input of rangeInputs) input.value = "";
     for (const input of exactInputs) input.value = "";
+    syncSlidersFromInputs();
     for (const group of chipGroups) group.active.clear();
     syncChipButtons();
     applyFilters();
@@ -574,78 +614,6 @@ function wirePlanEditor() {
 
   form?.addEventListener("submit", (event) => {
     if (validatePlanRows()) return;
-    event.preventDefault();
-    root.querySelector(".invalid")?.focus();
-  });
-}
-
-function wireHardwareEditor() {
-  const root = document.querySelector("[data-hardware-editor]");
-  if (!root) return;
-  const rows = root.querySelector("[data-hardware-rows]");
-  const template = root.querySelector("[data-hardware-template]");
-  const add = document.querySelector("[data-add-hardware]");
-  const form = root.closest("form");
-
-  function setFieldError(input, message) {
-    input.classList.toggle("invalid", Boolean(message));
-    input.setCustomValidity(message);
-    let error = input.parentElement?.querySelector(".field-error");
-    if (!message) {
-      error?.remove();
-      return;
-    }
-    if (!error) {
-      error = document.createElement("span");
-      error.className = "field-error";
-      input.parentElement?.appendChild(error);
-    }
-    error.textContent = message;
-  }
-
-  function validateNumberInput(input) {
-    if (!input.value.trim()) {
-      setFieldError(input, "");
-      return true;
-    }
-    const value = parseNumber(input.value);
-    let message = "";
-    if (value === null) message = "Use a number.";
-    else if (value < 0) message = "Use zero or higher.";
-    setFieldError(input, message);
-    return !message;
-  }
-
-  function validateRows() {
-    const inputs = Array.from(root.querySelectorAll("[data-hardware-number]"));
-    return inputs.every(validateNumberInput);
-  }
-
-  add?.addEventListener("click", () => {
-    rows.appendChild(template.content.cloneNode(true));
-    const lastRow = rows.querySelector("[data-hardware-row]:last-child input");
-    lastRow?.focus();
-  });
-
-  root.addEventListener("click", (event) => {
-    const remove = event.target.closest("[data-remove-hardware]");
-    if (!remove) return;
-    const row = remove.closest("[data-hardware-row]");
-    row?.remove();
-  });
-
-  root.addEventListener("input", (event) => {
-    const input = event.target.closest("[data-hardware-number]");
-    if (input) validateNumberInput(input);
-  });
-
-  root.addEventListener("blur", (event) => {
-    const input = event.target.closest("[data-hardware-number]");
-    if (input) validateNumberInput(input);
-  }, true);
-
-  form?.addEventListener("submit", (event) => {
-    if (validateRows()) return;
     event.preventDefault();
     root.querySelector(".invalid")?.focus();
   });
@@ -745,6 +713,5 @@ function wireReorder() {
 document.addEventListener("DOMContentLoaded", () => {
   wireDirectoryFilters();
   wirePlanEditor();
-  wireHardwareEditor();
   wireReorder();
 });

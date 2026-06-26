@@ -129,14 +129,14 @@
                 - bench {{ host.benchmark_score or "-" }}
               </span>
               <span class="muted">
-                {{ host.hardware_tier_count }} hardware tier{% if host.hardware_tier_count != 1 %}s{% endif %}
+                {{ host.tier_option_count }} tier option{% if host.tier_option_count != 1 %}s{% endif %}
                 - max CPU {{ host.max_cpu_cores or "-" }} cores
               </span>
             </span>
           </td>
           <td>
             <span class="spec-stack">
-              <span>{{ host.plan_count }} plans</span>
+              <span>{{ host.tier_option_count }} tier option{% if host.tier_option_count != 1 %}s{% endif %}</span>
               <span class="muted">
                 from {% if host.starting_price_usd %}${{ host.starting_price_usd }}/mo{% else %}-{% endif %}
                 - max {{ host.max_plan_ram_gb or "-" }} GB RAM

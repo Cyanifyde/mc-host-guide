@@ -103,108 +103,70 @@
 </section>
 
 <section class="detail-panel">
-  <h2>Hardware tiers by location</h2>
-  {% if host.hardware_tiers %}
-    <div class="tier-details-list">
-      {% for tier in host.hardware_tiers %}
-        <details class="tier-details">
-          <summary>
-            <strong>{{ tier.name or tier.cpu_model or "Hardware tier" }}</strong>
-            <span>
-              {{ tier.cpu_model or "Unknown CPU" }}
-              {% if tier.cpu_cores %} - {{ tier.cpu_cores }} cores{% endif %}
-              {% if tier.location_tags %} - {{ tier.location_tags|join(", ") }}{% endif %}
-            </span>
-          </summary>
-          <dl class="spec-list expanded">
-            <div><dt>Tier ID</dt><dd>{{ tier.id }}</dd></div>
-            <div><dt>CPU model</dt><dd>{{ tier.cpu_model or "Unknown" }}</dd></div>
-            <div><dt>CPU vendor</dt><dd>{{ tier.cpu_vendor or "Unknown" }}</dd></div>
-            <div><dt>CPU cores</dt><dd>{{ tier.cpu_cores or "Unknown" }}</dd></div>
-            <div><dt>Allocation</dt><dd>{{ tier.cpu_allocation or "Unknown" }}</dd></div>
-            <div><dt>Base GHz</dt><dd>{{ tier.advertised_clock_ghz or "Unknown" }}</dd></div>
-            <div><dt>Peak GHz</dt><dd>{{ tier.boost_clock_ghz or "Unknown" }}</dd></div>
-            <div><dt>Max memory</dt><dd>{% if tier.max_memory_gb %}{{ tier.max_memory_gb }} GB{% else %}Unknown{% endif %}</dd></div>
-            <div><dt>Memory speed</dt><dd>{% if tier.memory_speed_mhz %}{{ tier.memory_speed_mhz }} MHz{% else %}Unknown{% endif %}</dd></div>
-            <div><dt>Benchmark</dt><dd>{{ tier.benchmark_score or "Unknown" }}</dd></div>
-            <div><dt>Storage</dt><dd>{{ tier.storage_type or "Unknown" }}</dd></div>
-            <div><dt>Panel</dt><dd>{{ tier.panel or host.panel or "Unknown" }}</dd></div>
-            <div><dt>DDoS</dt><dd>{{ tier.ddos_protection or host.ddos_protection or "Unknown" }}</dd></div>
-            <div><dt>Modpacks</dt><dd>{{ tier.modpack_support or host.modpack_support or "Unknown" }}</dd></div>
-            <div><dt>Support</dt><dd>{{ tier.support_channels|join(", ") or host.support_channels|join(", ") or "Unknown" }}</dd></div>
-            <div><dt>Server types</dt><dd>{{ tier.server_types|join(", ") or host.server_types|join(", ") or "Unknown" }}</dd></div>
-            <div><dt>Locations</dt><dd>{{ tier.locations|join(", ") or tier.location_tags|join(", ") or "Unknown" }}</dd></div>
-          </dl>
-          {% if tier.notes %}<p>{{ tier.notes }}</p>{% endif %}
-          {% if tier.support_notes %}<p>{{ tier.support_notes }}</p>{% endif %}
-          {% if tier.price_notes %}<p>{{ tier.price_notes }}</p>{% endif %}
-          {% if tier.source_urls %}
-            <ul class="source-list">
-              {% for url in tier.source_urls %}
-                <li><a href="{{ url }}" rel="noreferrer">{{ url }}</a></li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        </details>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p>No separate hardware tiers recorded. The CPU fields above apply as the default host-level hardware note.</p>
-  {% endif %}
-</section>
-
-<section class="detail-panel">
-  <h2>Plans</h2>
-  {% if host.plans %}
+  <h2>Tiers</h2>
+  {% if host.public_offers %}
     <div class="table-shell inline-table">
       <table class="host-table plan-table">
         <thead>
           <tr>
-            <th>Plan</th>
+            <th>Tier</th>
             <th>$/mo</th>
             <th>RAM</th>
             <th>CPU</th>
+            <th>GHz</th>
+            <th>Memory</th>
             <th>Slots</th>
             <th>Recommended</th>
             <th>Storage</th>
-            <th>Hardware tiers</th>
             <th>Regions</th>
             <th>Features</th>
+            <th>Support</th>
             <th>Notes</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          {% for plan in host.plans %}
+          {% for offer in host.public_offers %}
             <tr>
-              <td>{{ plan.name or "Plan" }}</td>
-              <td>{% if plan.price_monthly_usd %}${{ plan.price_monthly_usd }}{% else %}-{% endif %}</td>
-              <td>{% if plan.ram_gb %}{{ plan.ram_gb }} GB{% else %}-{% endif %}</td>
+              <td>{{ offer.label or offer.planName or "Tier" }}</td>
+              <td>{% if offer.price %}${{ offer.price }}{% else %}-{% endif %}</td>
+              <td>{% if offer.planRam %}{{ offer.planRam }} GB{% else %}-{% endif %}</td>
               <td>
-                {% if plan.cpu_model %}{{ plan.cpu_model }}{% if plan.cpu_cores %}<br>{% endif %}{% endif %}
-                {% if plan.cpu_cores %}{{ plan.cpu_cores }}{% if plan.cpu_allocation %} {{ plan.cpu_allocation }}{% endif %}{% endif %}
-                {% if not plan.cpu_model and not plan.cpu_cores %}-{% endif %}
+                {% if offer.cpuModel %}{{ offer.cpuModel }}{% if offer.cores %}<br>{% endif %}{% endif %}
+                {% if offer.cores %}{{ offer.cores }}{% if offer.cpuAllocation %} {{ offer.cpuAllocation }}{% endif %}{% endif %}
+                {% if not offer.cpuModel and not offer.cores %}-{% endif %}
               </td>
-              <td>{{ plan.player_slots or "-" }}</td>
-              <td>{{ plan.recommended_players or "-" }}</td>
-              <td>{% if plan.storage_gb %}{{ plan.storage_gb }} GB{% else %}-{% endif %}</td>
-              <td>{{ plan.hardware_tier_ids|join(", ") or "All/default" }}</td>
-              <td>{{ plan.location_tags|join(", ") or "All/default" }}</td>
               <td>
-                {{ plan.panel or host.panel or "Panel unknown" }}
-                {% if plan.ddos_protection or host.ddos_protection %}<br>{{ plan.ddos_protection or host.ddos_protection }}{% endif %}
-                {% if plan.modpack_support or host.modpack_support %}<br>{{ plan.modpack_support or host.modpack_support }}{% endif %}
-                {% if plan.support_channels %}<br>{{ plan.support_channels|join(", ") }}{% endif %}
+                Base {{ offer.baseGhz or "-" }}
+                <br>Peak {{ offer.peakGhz or "-" }}
               </td>
-              <td>{{ plan.notes or "-" }}</td>
-              <td>{% if plan.plan_url %}<a class="button table-action" href="{{ plan.plan_url }}" rel="noreferrer">Open</a>{% endif %}</td>
+              <td>
+                Max {% if offer.maxMemory %}{{ offer.maxMemory }} GB{% else %}-{% endif %}
+                <br>Speed {% if offer.memorySpeed %}{{ offer.memorySpeed }} MHz{% else %}-{% endif %}
+                <br>Bench {{ offer.benchmark or "-" }}
+              </td>
+              <td>{{ offer.players or "-" }}</td>
+              <td>{{ offer.recommendedPlayers or "-" }}</td>
+              <td>
+                {% if offer.storage %}{{ offer.storage }} GB{% else %}-{% endif %}
+                {% if offer.storageType %}<br>{{ offer.storageType }}{% endif %}
+              </td>
+              <td>{{ offer.locationTags|join(", ") or "Unknown" }}</td>
+              <td>
+                {{ offer.panel or "Panel unknown" }}
+                {% if offer.ddosProtection %}<br>{{ offer.ddosProtection }}{% endif %}
+                {% if offer.modpackSupport %}<br>{{ offer.modpackSupport }}{% endif %}
+              </td>
+              <td>{{ offer.supportChannels|join(", ") or "Unknown" }}</td>
+              <td>{{ offer.notes or offer.hardwareNotes or "-" }}</td>
+              <td>{% if offer.url %}<a class="button table-action" href="{{ offer.url }}" rel="noreferrer">Open</a>{% endif %}</td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   {% else %}
-    <p>No plan rows recorded.</p>
+    <p>No tier rows recorded.</p>
   {% endif %}
 </section>
 
