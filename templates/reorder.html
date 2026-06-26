@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+{% block title %}Reorder hosts - MC Host Guide CMS{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Ordering</p>
+    <h1>Drag reorder</h1>
+  </div>
+  <button class="button primary" type="button" data-save-order>Save order</button>
+</section>
+
+<section class="reorder-shell">
+  <div class="reorder-toolbar">
+    <span data-order-status>Drag rows, then save.</span>
+    <a href="{{ url_for('dashboard') }}">Back to dashboard</a>
+  </div>
+  <ol class="reorder-list" data-reorder-list>
+    {% for host in hosts %}
+      <li class="reorder-item" draggable="true" data-id="{{ host.id }}">
+        <span class="drag-handle" title="Drag">::</span>
+        <span class="reorder-rank">{{ loop.index }}</span>
+        <div>
+          <strong>{{ host.name }}</strong>
+          <small>{{ tier_labels[host.recommendation_tier] }}{% if host.tags %} - {{ host.tags|join(", ") }}{% endif %}</small>
+        </div>
+      </li>
+    {% else %}
+      <li class="empty-public">
+        <strong>No hosts to reorder.</strong>
+        <span>Add hosts first.</span>
+      </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endblock %}

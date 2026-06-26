@@ -11,7 +11,7 @@ python app.py
 
 Open <http://127.0.0.1:5000/> to manage hosts.
 
-The CMS writes host data to `data/hosts.json`. Use the Build page or run:
+The CMS writes host data to `data/hosts.json`. Use the Reorder page to drag hosts into rank order, then use the Build page or run:
 
 ```powershell
 python build_site.py
@@ -31,7 +31,7 @@ If automatic Pages configuration fails, open the GitHub repo settings and choose
 
 ## Data model
 
-Rankings are manual. Each host has a tier, rank, category picks, CPU/GHz fields, hosting feature notes, source URLs, status, and trust notes.
+Rankings are manual. Each host has a tier, drag-saved rank, category picks, tags, CPU/GHz fields, hosting feature notes, source URLs, status, and trust notes.
 
 Tier values:
 

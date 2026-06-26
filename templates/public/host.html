@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ host.name }} - Minecraft Host Guide{% endblock %}
 {% block content %}
-<section class="host-detail-hero">
+<section class="host-detail-header">
   <div class="host-card-top">
     {% if host.logo_url %}
       <img class="host-logo large" src="{{ host.logo_url }}" alt="{{ host.name }} logo">
@@ -12,6 +12,11 @@
       <p class="eyebrow">{{ tier_labels[host.recommendation_tier] }}</p>
       <h1>{{ host.name }}</h1>
       <p>{{ host.summary or "No public summary yet." }}</p>
+      {% if host.tags %}
+        <div class="pill-row">
+          {% for tag in host.tags %}<span class="pill">{{ tag }}</span>{% endfor %}
+        </div>
+      {% endif %}
     </div>
   </div>
   <div class="form-actions">

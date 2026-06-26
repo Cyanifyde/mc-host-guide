@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Minecraft Host Guide - Recommendations</title>
+  <title>Minecraft Host Guide</title>
   <meta name="description" content="Manual Minecraft host recommendations with CPU, GHz, pricing, trust, and feature notes.">
   <link rel="stylesheet" href="static/styles.css">
   <script src="static/site.js" defer></script>
@@ -14,42 +14,111 @@
       <span class="brand-mark">MC</span>
       <span>
         <strong>Minecraft Host Guide</strong>
-        <small>CPU-aware recommendations</small>
+        <small>Host directory</small>
       </span>
     </a>
     <nav class="nav-actions" aria-label="Site">
-      <a class="active" href="index.html">Picks</a>
-      <a class="" href="directory.html">Directory</a>
+      <a class="active" href="index.html">Hosts</a>
+      <a class="" href="directory.html">All</a>
       <a class="" href="methodology.html">Methodology</a>
     </nav>
   </header>
   <main class="page">
-<section class="hero-band">
+<section class="utility-heading">
   <div>
-    <p class="eyebrow">Manual recommendations</p>
-    <h1>Minecraft host picks with CPU and GHz context.</h1>
-    <p>Hosts are ranked manually by tier, category, hardware notes, feature fit, and trust caveats.</p>
+    <h1>Hosts</h1>
+    <p>0 published hosts. Filter by tags, tier, category, and specs.</p>
   </div>
-  <div class="hero-visual" aria-hidden="true">
-    <span></span><span></span><span></span><span></span>
+  <a class="button" href="methodology.html">Methodology</a>
+</section>
+
+<section class="utility-panel" data-directory-filters>
+  <div class="utility-controls">
+    <label class="search-wide">
+      <span>Search</span>
+      <input data-filter-search placeholder="host, CPU, tag, region">
+    </label>
+    <label>
+      <span>Sort</span>
+      <select data-filter-sort>
+        <option value="rank">Rank</option>
+        <option value="name">Name</option>
+        <option value="tier">Tier</option>
+        <option value="ghz-desc">GHz high to low</option>
+        <option value="verified-desc">Recently verified</option>
+      </select>
+    </label>
+    <label>
+      <span>Tier</span>
+      <select data-filter-tier>
+        <option value="">All tiers</option>
+          <option value="top_pick">Top pick</option>
+          <option value="recommended">Recommended</option>
+          <option value="situational">Situational</option>
+          <option value="avoid">Avoid</option>
+          <option value="unreviewed">Unreviewed</option>
+      </select>
+    </label>
+    <label>
+      <span>Category</span>
+      <select data-filter-category>
+        <option value="">All categories</option>
+          <option value="overall">Overall</option>
+          <option value="budget">Budget</option>
+          <option value="performance">Performance</option>
+          <option value="modded">Modded</option>
+          <option value="free">Free</option>
+          <option value="small_servers">Small servers</option>
+          <option value="large_servers">Large servers</option>
+          <option value="regional">Regional</option>
+      </select>
+    </label>
+    <label>
+      <span>Status</span>
+      <select data-filter-status>
+        <option value="">All statuses</option>
+          <option value="unreviewed">Unreviewed</option>
+          <option value="active">Active</option>
+          <option value="likely_active">Likely active</option>
+          <option value="uncertain">Uncertain</option>
+          <option value="avoid">Avoid</option>
+          <option value="inactive">Inactive</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="tag-cloud" aria-label="Tags">
+      <span class="muted">No tags yet.</span>
+  </div>
+
+  <div class="result-line">
+    <span data-result-count>0</span> matching hosts
+    <button class="link-button" type="button" data-clear-filters>Clear filters</button>
   </div>
 </section>
 
-<section class="section-heading">
-  <div>
-    <p class="eyebrow">Top recommendations</p>
-    <h2>Ranked picks</h2>
+<section class="directory-table-shell">
+  <table class="directory-table" data-directory-list>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Host</th>
+        <th>Tier</th>
+        <th>Tags</th>
+        <th>CPU / GHz</th>
+        <th>Location</th>
+        <th>Panel</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <div class="empty-public" data-empty-results hidden>
+    <strong>No matching hosts.</strong>
+    <span>Clear filters or use fewer tags.</span>
   </div>
-  <a class="button" href="directory.html">View directory</a>
-</section>
-
-<section class="host-grid">
-    <div class="empty-public">
-      <strong>No published recommendations yet.</strong>
-      <span>Build the site after adding hosts in the local CMS.</span>
-    </div>
-</section>
-
-  </main>
+</section>  </main>
 </body>
 </html>

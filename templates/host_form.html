@@ -51,7 +51,7 @@
       </label>
       <label>
         <span>Rank</span>
-        <input name="rank" value="{{ host.rank }}" type="number" min="1">
+        <div class="readonly-field">#{{ host.rank }} - change on the <a href="{{ url_for('reorder_hosts') }}">reorder page</a></div>
       </label>
       <label>
         <span>Status</span>
@@ -95,6 +95,10 @@
       <label>
         <span>Storage type</span>
         <input name="storage_type" value="{{ host.storage_type }}" placeholder="NVMe SSD">
+      </label>
+      <label>
+        <span>Tags</span>
+        <textarea name="tags" rows="3" placeholder="ryzen&#10;budget&#10;eu">{{ host.tags|join('\n') }}</textarea>
       </label>
       <label>
         <span>Locations</span>

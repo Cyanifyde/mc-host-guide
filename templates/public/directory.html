@@ -1,46 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Minecraft Host Directory{% endblock %}
 {% block content %}
-<section class="page-heading">
+<section class="utility-heading">
   <div>
-    <p class="eyebrow">Directory</p>
-    <h1>All published hosts</h1>
+    <h1>All hosts</h1>
+    <p>{{ hosts|length }} published hosts. Results update in the browser.</p>
   </div>
 </section>
 
-<section class="filter-bar public-filters" data-directory-filters>
-  <label>
-    <span>Search</span>
-    <input data-filter-search placeholder="Name, CPU, region">
-  </label>
-  <label>
-    <span>Tier</span>
-    <select data-filter-tier>
-      <option value="">All tiers</option>
-      {% for tier, label in tier_labels.items() %}
-        <option value="{{ tier }}">{{ label }}</option>
-      {% endfor %}
-    </select>
-  </label>
-  <label>
-    <span>Category</span>
-    <select data-filter-category>
-      <option value="">All categories</option>
-      {% for category, label in category_labels.items() %}
-        <option value="{{ category }}">{{ label }}</option>
-      {% endfor %}
-    </select>
-  </label>
-</section>
-
-<section class="host-grid" data-directory-list>
-  {% for host in hosts %}
-    {% include "host_card.html" %}
-  {% else %}
-    <div class="empty-public">
-      <strong>No hosts published.</strong>
-      <span>Add hosts in the local CMS and rebuild the site.</span>
-    </div>
-  {% endfor %}
-</section>
+{% include "utility_directory.html" %}
 {% endblock %}

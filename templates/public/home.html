@@ -1,57 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Minecraft Host Guide - Recommendations{% endblock %}
+{% block title %}Minecraft Host Guide{% endblock %}
 {% block content %}
-<section class="hero-band">
+<section class="utility-heading">
   <div>
-    <p class="eyebrow">Manual recommendations</p>
-    <h1>Minecraft host picks with CPU and GHz context.</h1>
-    <p>Hosts are ranked manually by tier, category, hardware notes, feature fit, and trust caveats.</p>
+    <h1>Hosts</h1>
+    <p>{{ hosts|length }} published hosts. Filter by tags, tier, category, and specs.</p>
   </div>
-  <div class="hero-visual" aria-hidden="true">
-    <span></span><span></span><span></span><span></span>
-  </div>
+  <a class="button" href="methodology.html">Methodology</a>
 </section>
 
-<section class="section-heading">
-  <div>
-    <p class="eyebrow">Top recommendations</p>
-    <h2>Ranked picks</h2>
-  </div>
-  <a class="button" href="directory.html">View directory</a>
-</section>
-
-<section class="host-grid">
-  {% for host in top_hosts %}
-    {% include "host_card.html" %}
-  {% else %}
-    <div class="empty-public">
-      <strong>No published recommendations yet.</strong>
-      <span>Build the site after adding hosts in the local CMS.</span>
-    </div>
-  {% endfor %}
-</section>
-
-{% if category_picks %}
-<section class="section-heading">
-  <div>
-    <p class="eyebrow">Categories</p>
-    <h2>Best fit by use case</h2>
-  </div>
-</section>
-<div class="category-stack">
-  {% for category, hosts in category_picks.items() %}
-    <section class="category-row">
-      <h3>{{ category_labels[category] }}</h3>
-      <div class="mini-list">
-        {% for host in hosts %}
-          <a href="hosts/{{ host.id }}.html">
-            <strong>{{ host.name }}</strong>
-            <span>{{ tier_labels[host.recommendation_tier] }}</span>
-          </a>
-        {% endfor %}
-      </div>
-    </section>
-  {% endfor %}
-</div>
-{% endif %}
+{% include "utility_directory.html" %}
 {% endblock %}

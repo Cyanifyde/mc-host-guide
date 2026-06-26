@@ -5,7 +5,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from host_store import CATEGORY_LABELS, ROOT_DIR, STATUS_LABELS, TIER_LABELS, load_hosts
+from host_store import CATEGORY_LABELS, ROOT_DIR, STATUS_LABELS, TIER_LABELS, all_tags, load_hosts
 
 DOCS_DIR = ROOT_DIR / "docs"
 TEMPLATE_DIR = ROOT_DIR / "templates" / "public"
@@ -43,7 +43,7 @@ def build_site() -> dict[str, int]:
         for host in public_hosts
         if host.get("recommendation_tier") in {"top_pick", "recommended", "situational"}
     ]
-    category_picks = build_category_picks(top_hosts)
+    available_tags = all_tags(public_hosts)
 
     render(
         env,
@@ -51,7 +51,7 @@ def build_site() -> dict[str, int]:
         DOCS_DIR / "index.html",
         hosts=public_hosts,
         top_hosts=top_hosts[:8],
-        category_picks=category_picks,
+        all_tags=available_tags,
         root_prefix="",
         active_page="home",
         **common,
@@ -61,6 +61,7 @@ def build_site() -> dict[str, int]:
         "directory.html",
         DOCS_DIR / "directory.html",
         hosts=public_hosts,
+        all_tags=available_tags,
         root_prefix="",
         active_page="directory",
         **common,
@@ -86,16 +87,6 @@ def build_site() -> dict[str, int]:
         )
 
     return {"host_count": len(public_hosts), "page_count": len(public_hosts) + 3}
-
-
-def build_category_picks(hosts: list[dict]) -> dict[str, list[dict]]:
-    picks: dict[str, list[dict]] = {}
-    for host in hosts:
-        for category in host.get("category_picks", []):
-            picks.setdefault(category, []).append(host)
-    return {category: values[:4] for category, values in picks.items()}
-
-
 def render(env: Environment, template_name: str, target: Path, **context) -> None:
     template = env.get_template(template_name)
     target.write_text(template.render(**context), encoding="utf-8")

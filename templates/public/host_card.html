@@ -1,4 +1,4 @@
-<article class="host-card" data-search="{{ host.name }} {{ host.summary }} {{ host.cpu_model }} {{ host.locations|join(' ') }}" data-tier="{{ host.recommendation_tier }}" data-status="{{ host.status }}" data-categories="{{ host.category_picks|join(' ') }}">
+<article class="host-card" data-search="{{ host.name }} {{ host.summary }} {{ host.cpu_model }} {{ host.locations|join(' ') }} {{ host.tags|join(' ') }}" data-tier="{{ host.recommendation_tier }}" data-status="{{ host.status }}" data-categories="{{ host.category_picks|join(' ') }}" data-tags="{{ host.tags|join(' ') }}">
   <div class="host-card-top">
     {% if host.logo_url %}
       <img class="host-logo" src="{{ host.logo_url }}" alt="{{ host.name }} logo">
@@ -18,6 +18,9 @@
     <div><dt>Panel</dt><dd>{{ host.panel or "Unknown" }}</dd></div>
   </dl>
   <div class="pill-row">
+    {% for tag in host.tags %}
+      <span class="pill">{{ tag }}</span>
+    {% endfor %}
     {% for category in host.category_picks %}
       <span class="pill">{{ category_labels[category] }}</span>
     {% endfor %}

@@ -6,6 +6,7 @@ from flask import (
     Flask,
     abort,
     flash,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -22,6 +23,7 @@ from host_store import (
     STATUS_OPTIONS,
     TIER_LABELS,
     TIER_OPTIONS,
+    all_tags,
     find_host,
     load_hosts,
     normalize_list,
@@ -56,6 +58,7 @@ def dashboard():
     tier = request.args.get("tier", "").strip()
     category = request.args.get("category", "").strip()
     status = request.args.get("status", "").strip()
+    tag = request.args.get("tag", "").strip().lower()
 
     filtered = hosts
     if query:
@@ -69,6 +72,7 @@ def dashboard():
                     host.get("summary", ""),
                     host.get("cpu_model", ""),
                     host.get("cpu_vendor", ""),
+                    " ".join(host.get("tags", [])),
                     " ".join(host.get("locations", [])),
                 ]
             ).lower()
@@ -79,6 +83,8 @@ def dashboard():
         filtered = [host for host in filtered if category in host.get("category_picks", [])]
     if status:
         filtered = [host for host in filtered if host.get("status") == status]
+    if tag:
+        filtered = [host for host in filtered if tag in host.get("tags", [])]
 
     stats = {
         "total": len(hosts),
@@ -94,7 +100,8 @@ def dashboard():
         "dashboard.html",
         hosts=filtered,
         stats=stats,
-        filters={"q": query, "tier": tier, "category": category, "status": status},
+        all_tags=all_tags(hosts),
+        filters={"q": query, "tier": tier, "category": category, "status": status, "tag": tag},
     )
 
 
@@ -148,6 +155,31 @@ def delete_host(host_id: str):
         flash(f"Deleted {host['name']}.", "success")
         return redirect(url_for("dashboard"))
     return render_template("delete_host.html", host=host)
+
+
+@app.route("/hosts/reorder", methods=["GET", "POST"])
+def reorder_hosts():
+    hosts = load_hosts()
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+        order = payload.get("order", [])
+        if not isinstance(order, list):
+            return jsonify({"ok": False, "error": "Expected order list."}), 400
+
+        by_id = {host["id"]: host for host in hosts}
+        reordered = []
+        seen = set()
+        for host_id in order:
+            if host_id in by_id and host_id not in seen:
+                seen.add(host_id)
+                reordered.append(by_id[host_id])
+        reordered.extend(host for host in hosts if host["id"] not in seen)
+        for index, host in enumerate(reordered, start=1):
+            host["rank"] = index
+        save_hosts(reordered)
+        return jsonify({"ok": True, "count": len(reordered)})
+
+    return render_template("reorder.html", hosts=hosts)
 
 
 @app.route("/build", methods=["GET", "POST"])
@@ -212,10 +244,14 @@ def host_from_form(existing_ids: set[str], existing: dict | None = None) -> dict
     else:
         host["id"] = unique_slug(host["name"] or "host", existing_ids)
 
-    try:
-        host["rank"] = int(request.form.get("rank", "999"))
-    except ValueError:
-        host["rank"] = 999
+    rank_value = request.form.get("rank")
+    if rank_value is None and existing:
+        host["rank"] = existing.get("rank", 999)
+    else:
+        try:
+            host["rank"] = int(rank_value or "999")
+        except ValueError:
+            host["rank"] = 999
 
     host["category_picks"] = [
         category
@@ -223,6 +259,7 @@ def host_from_form(existing_ids: set[str], existing: dict | None = None) -> dict
         if category in CATEGORY_OPTIONS
     ]
     host["locations"] = normalize_list(request.form.get("locations", ""))
+    host["tags"] = normalize_list(request.form.get("tags", ""))
     host["server_types"] = normalize_list(request.form.get("server_types", ""))
     host["source_urls"] = normalize_list(request.form.get("source_urls", ""))
     host["pros"] = normalize_list(request.form.get("pros", ""))

@@ -51,7 +51,15 @@ STATUS_LABELS = {
     "inactive": "Inactive",
 }
 
-LIST_FIELDS = ["category_picks", "locations", "server_types", "source_urls", "pros", "cons"]
+LIST_FIELDS = [
+    "category_picks",
+    "tags",
+    "locations",
+    "server_types",
+    "source_urls",
+    "pros",
+    "cons",
+]
 TEXT_FIELDS = [
     "id",
     "name",
@@ -104,6 +112,7 @@ DEFAULT_HOST: dict[str, Any] = {
     "recommendation_tier": "unreviewed",
     "rank": 999,
     "category_picks": [],
+    "tags": [],
     "pros": [],
     "cons": [],
     "caveats": "",
@@ -144,6 +153,7 @@ def normalize_host(host: dict[str, Any]) -> dict[str, Any]:
     clean["category_picks"] = [
         category for category in clean["category_picks"] if category in CATEGORY_OPTIONS
     ]
+    clean["tags"] = sorted({tag.lower() for tag in clean["tags"]})
 
     tier = clean.get("recommendation_tier") or "unreviewed"
     clean["recommendation_tier"] = tier if tier in TIER_OPTIONS else "unreviewed"
@@ -207,3 +217,10 @@ def find_host(hosts: list[dict[str, Any]], host_id: str) -> dict[str, Any] | Non
         if host.get("id") == host_id:
             return host
     return None
+
+
+def all_tags(hosts: list[dict[str, Any]]) -> list[str]:
+    tags: set[str] = set()
+    for host in hosts:
+        tags.update(host.get("tags", []))
+    return sorted(tags)

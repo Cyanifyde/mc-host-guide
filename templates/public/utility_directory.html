@@ -1,0 +1,114 @@
+<section class="utility-panel" data-directory-filters>
+  <div class="utility-controls">
+    <label class="search-wide">
+      <span>Search</span>
+      <input data-filter-search placeholder="host, CPU, tag, region">
+    </label>
+    <label>
+      <span>Sort</span>
+      <select data-filter-sort>
+        <option value="rank">Rank</option>
+        <option value="name">Name</option>
+        <option value="tier">Tier</option>
+        <option value="ghz-desc">GHz high to low</option>
+        <option value="verified-desc">Recently verified</option>
+      </select>
+    </label>
+    <label>
+      <span>Tier</span>
+      <select data-filter-tier>
+        <option value="">All tiers</option>
+        {% for tier, label in tier_labels.items() %}
+          <option value="{{ tier }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      <span>Category</span>
+      <select data-filter-category>
+        <option value="">All categories</option>
+        {% for category, label in category_labels.items() %}
+          <option value="{{ category }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      <span>Status</span>
+      <select data-filter-status>
+        <option value="">All statuses</option>
+        {% for status, label in status_labels.items() %}
+          <option value="{{ status }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+
+  <div class="tag-cloud" aria-label="Tags">
+    {% for tag in all_tags %}
+      <button class="tag-chip" type="button" data-tag-filter="{{ tag }}">{{ tag }}</button>
+    {% else %}
+      <span class="muted">No tags yet.</span>
+    {% endfor %}
+  </div>
+
+  <div class="result-line">
+    <span data-result-count>{{ hosts|length }}</span> matching hosts
+    <button class="link-button" type="button" data-clear-filters>Clear filters</button>
+  </div>
+</section>
+
+<section class="directory-table-shell">
+  <table class="directory-table" data-directory-list>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>Host</th>
+        <th>Tier</th>
+        <th>Tags</th>
+        <th>CPU / GHz</th>
+        <th>Location</th>
+        <th>Panel</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for host in hosts %}
+        <tr class="host-row"
+            data-search="{{ host.name }} {{ host.summary }} {{ host.cpu_model }} {{ host.cpu_vendor }} {{ host.locations|join(' ') }} {{ host.tags|join(' ') }} {{ host.category_picks|join(' ') }}"
+            data-name="{{ host.name|lower }}"
+            data-rank="{{ host.rank }}"
+            data-tier="{{ host.recommendation_tier }}"
+            data-tier-order="{% if host.recommendation_tier == 'top_pick' %}1{% elif host.recommendation_tier == 'recommended' %}2{% elif host.recommendation_tier == 'situational' %}3{% elif host.recommendation_tier == 'avoid' %}4{% else %}5{% endif %}"
+            data-status="{{ host.status }}"
+            data-ghz="{{ host.advertised_clock_ghz or host.boost_clock_ghz or 0 }}"
+            data-verified="{{ host.last_verified }}"
+            data-tags="{{ host.tags|join(' ') }}"
+            data-categories="{{ host.category_picks|join(' ') }}">
+          <td class="rank-cell">{{ host.rank }}</td>
+          <td>
+            <a class="host-name-link" href="{{ root_prefix }}hosts/{{ host.id }}.html">{{ host.name }}</a>
+            <small>{{ host.summary or "No summary" }}</small>
+          </td>
+          <td><span class="badge tier-{{ host.recommendation_tier }}">{{ tier_labels[host.recommendation_tier] }}</span></td>
+          <td>
+            {% for tag in host.tags %}
+              <span class="pill">{{ tag }}</span>
+            {% else %}
+              <span class="muted">-</span>
+            {% endfor %}
+          </td>
+          <td>{{ host.cpu_model or "Unknown" }}{% if host.advertised_clock_ghz %} / {{ host.advertised_clock_ghz }} GHz{% endif %}</td>
+          <td>{{ host.locations|join(", ") or "Unknown" }}</td>
+          <td>{{ host.panel or "Unknown" }}</td>
+          <td>{{ status_labels[host.status] }}</td>
+          <td><a href="{{ root_prefix }}hosts/{{ host.id }}.html">Open</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="empty-public" data-empty-results hidden>
+    <strong>No matching hosts.</strong>
+    <span>Clear filters or use fewer tags.</span>
+  </div>
+</section>
