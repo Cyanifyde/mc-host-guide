@@ -311,6 +311,10 @@ textarea {
   overflow: auto;
 }
 
+.directory-table-shell {
+  overflow: visible;
+}
+
 .utility-panel {
   position: sticky;
   top: 56px;
@@ -558,7 +562,7 @@ textarea {
 }
 
 .directory-table {
-  min-width: 980px;
+  min-width: 0;
 }
 
 .host-table th,
@@ -600,6 +604,11 @@ textarea {
 .directory-table th:nth-child(7),
 .directory-table td:nth-child(7) {
   min-width: 140px;
+}
+
+.directory-table td,
+.plan-table td {
+  overflow-wrap: anywhere;
 }
 
 .host-row {
@@ -1037,14 +1046,13 @@ input.invalid {
 .quick-facts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1px;
-  border: 1px solid var(--line);
-  background: var(--line);
+  gap: 8px;
   margin-bottom: 12px;
 }
 
 .quick-fact {
   min-width: 0;
+  border: 1px solid var(--line);
   background: var(--surface);
   padding: 10px;
 }
@@ -1121,14 +1129,13 @@ input.invalid {
 .selected-tier-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 1px;
+  gap: 8px;
   margin: 0;
-  border: 1px solid var(--line);
-  background: var(--line);
 }
 
 .selected-tier-grid div {
   min-width: 0;
+  border: 1px solid var(--line);
   background: var(--surface);
   padding: 8px;
 }
@@ -1168,19 +1175,16 @@ input.invalid {
 }
 
 .inline-table {
-  overflow-x: auto;
+  overflow: visible;
 }
 
 .plan-table {
-  min-width: 920px;
+  min-width: 0;
 }
 
 .plan-table th:last-child,
 .plan-table td:last-child {
-  position: sticky;
-  right: 0;
   background: var(--surface);
-  box-shadow: -1px 0 0 var(--line);
   white-space: nowrap;
 }
 
@@ -1430,9 +1434,10 @@ dd {
   }
 }
 
-@media (max-width: 760px) {
-  .utility-panel {
-    position: static;
+@media (max-width: 1180px) {
+  .directory-table-shell {
+    border: 0;
+    background: transparent;
   }
 
   .directory-table {
@@ -1451,13 +1456,18 @@ dd {
     width: 100%;
   }
 
+  .directory-table tbody {
+    display: grid;
+    gap: 10px;
+  }
+
   .directory-table tr {
-    border-bottom: 1px solid var(--line);
+    border: 1px solid var(--line);
+    background: var(--surface);
     padding: 10px;
   }
 
   .directory-table td {
-    display: block;
     border-bottom: 0;
     padding: 7px 0;
   }
@@ -1477,10 +1487,7 @@ dd {
     padding-bottom: 10px;
   }
 
-  .directory-table td[data-label="Rank"] {
-    display: none;
-  }
-
+  .directory-table td[data-label="Rank"],
   .directory-table td[data-label="Host"]::before {
     display: none;
   }
@@ -1493,5 +1500,84 @@ dd {
 
   .mini-specs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1180px) {
+  .plan-table,
+  .plan-table thead,
+  .plan-table tbody,
+  .plan-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .plan-table thead {
+    display: none;
+  }
+
+  .plan-table tbody {
+    display: grid;
+    gap: 10px;
+  }
+
+  .plan-table tr[data-tier-row] {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0 14px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    padding: 10px;
+  }
+
+  .plan-table tr[data-tier-row].selected {
+    background: var(--accent-soft);
+  }
+
+  .plan-table td {
+    border-bottom: 0;
+    min-width: 0;
+    padding: 7px 0;
+  }
+
+  .plan-table td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 3px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+
+  .plan-table td:first-child {
+    border-bottom: 1px solid var(--line);
+    font-weight: 900;
+    grid-column: 1 / -1;
+    margin-bottom: 4px;
+    padding-bottom: 10px;
+  }
+
+  .plan-table td[data-label="Notes"],
+  .plan-table td[data-label="Plan link"] {
+    grid-column: 1 / -1;
+  }
+
+  .plan-table td:first-child::before {
+    display: none;
+  }
+
+  .plan-table th:last-child,
+  .plan-table td:last-child {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 760px) {
+  .utility-panel {
+    position: static;
+  }
+
+  .plan-table tr[data-tier-row] {
+    grid-template-columns: 1fr;
   }
 }

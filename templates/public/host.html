@@ -68,8 +68,8 @@
 
 <section class="quick-facts" aria-label="Host quick facts">
   <div class="quick-fact">
-    <span>Starting price</span>
-    <strong>{% if host.starting_price_usd %}${{ host.starting_price_usd }}/mo{% else %}Unknown{% endif %}</strong>
+    <span>Price range</span>
+    <strong>{% if host.price_range_usd %}${{ host.price_range_usd }}/mo{% else %}Unknown{% endif %}</strong>
   </div>
   <div class="quick-fact">
     <span>Best $/GB</span>
@@ -128,38 +128,38 @@
         <tbody>
           {% for offer in host.public_offers %}
             <tr data-tier-row data-tier-id="{{ offer.id }}" data-tier-offer='{{ offer|tojson }}' tabindex="0" {% if loop.first %}class="selected"{% endif %}>
-              <td>{{ offer.label or offer.planName or "Tier" }}</td>
-              <td>{% if offer.price %}${{ offer.price }}{% else %}-{% endif %}</td>
-              <td>{% if offer.pricePerGb %}${{ offer.pricePerGb }}/GB{% else %}-{% endif %}</td>
-              <td>{% if offer.planRam %}{{ offer.planRam }} GB{% else %}-{% endif %}</td>
-              <td>
+              <td data-label="Tier">{{ offer.label or offer.planName or "Tier" }}</td>
+              <td data-label="$/mo">{% if offer.price %}${{ offer.price }}{% else %}-{% endif %}</td>
+              <td data-label="$/GB">{% if offer.pricePerGb %}${{ offer.pricePerGb }}/GB{% else %}-{% endif %}</td>
+              <td data-label="RAM">{% if offer.planRam %}{{ offer.planRam }} GB{% else %}-{% endif %}</td>
+              <td data-label="CPU">
                 {% if offer.cpuModel %}{{ offer.cpuModel }}{% if offer.cores %}<br>{% endif %}{% endif %}
                 {% if offer.cores %}{{ offer.cores }}{% if offer.cpuAllocation %} {{ offer.cpuAllocation }}{% endif %}{% endif %}
                 {% if not offer.cpuModel and not offer.cores %}-{% endif %}
               </td>
-              <td>
+              <td data-label="GHz">
                 Base {{ offer.baseGhz or "-" }}
                 <br>Peak {{ offer.peakGhz or "-" }}
               </td>
-              <td>
+              <td data-label="Memory / bench">
                 Speed {% if offer.memorySpeed %}{{ offer.memorySpeed }} MHz{% else %}-{% endif %}
                 <br>Bench {{ offer.benchmark or "-" }}
               </td>
-              <td>{{ offer.players or "-" }}</td>
-              <td>{{ offer.recommendedPlayers or "-" }}</td>
-              <td>
+              <td data-label="Slots">{{ offer.players or "-" }}</td>
+              <td data-label="Rec. players">{{ offer.recommendedPlayers or "-" }}</td>
+              <td data-label="Storage">
                 {% if offer.storage %}{{ offer.storage }} GB{% else %}-{% endif %}
                 {% if offer.storageType %}<br>{{ offer.storageType }}{% endif %}
               </td>
-              <td>{{ offer.locationTags|join(", ") or "Unknown" }}</td>
-              <td>
+              <td data-label="Regions">{{ offer.locationTags|join(", ") or "Unknown" }}</td>
+              <td data-label="Features">
                 {{ offer.panel or "Panel unknown" }}
                 {% if offer.ddosProtection %}<br>{{ offer.ddosProtection }}{% endif %}
                 {% if offer.modpackSupport %}<br>{{ offer.modpackSupport }}{% endif %}
               </td>
-              <td>{{ offer.supportChannels|join(", ") or "Unknown" }}</td>
-              <td>{{ offer.notes or offer.hardwareNotes or "-" }}</td>
-              <td>{% if offer.url %}<a class="button table-action" href="{{ offer.url }}" rel="noreferrer">Open</a>{% endif %}</td>
+              <td data-label="Support">{{ offer.supportChannels|join(", ") or "Unknown" }}</td>
+              <td data-label="Notes">{{ offer.notes or offer.hardwareNotes or "-" }}</td>
+              <td data-label="Plan link">{% if offer.url %}<a class="button table-action" href="{{ offer.url }}" rel="noreferrer">Open</a>{% endif %}</td>
             </tr>
           {% endfor %}
         </tbody>

@@ -65,13 +65,20 @@
     </details>
 
     <details class="filter-details" open>
-      <summary>Price, RAM, and capacity</summary>
+      <summary>Specs, plans, and capacity</summary>
       <div class="range-grid sidebar-ranges">
         <label class="range-control">
-          <span>Starting price max</span>
+          <span>Price min</span>
+          <div class="range-pair">
+            <input data-range-key="price" data-range-bound="min" data-range-param="priceMin" type="number" step="0.01" inputmode="decimal">
+            <input class="range-slider" data-slider-target="priceMin" type="range" min="0" max="200" step="1" value="0" aria-label="Price minimum slider">
+          </div>
+        </label>
+        <label class="range-control">
+          <span>Price max</span>
           <div class="range-pair">
             <input data-range-key="price" data-range-bound="max" data-range-param="priceMax" type="number" step="0.01" inputmode="decimal">
-            <input class="range-slider" data-slider-target="priceMax" type="range" min="0" max="200" step="1" value="0" aria-label="Starting price maximum slider">
+            <input class="range-slider" data-slider-target="priceMax" type="range" min="0" max="200" step="1" value="0" aria-label="Price maximum slider">
           </div>
         </label>
         <label class="range-control">
