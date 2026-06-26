@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ host.name }} - Minecraft Host Guide{% endblock %}
+{% block title %}{{ host.name }} - Host Guide{% endblock %}
 {% block content %}
 {% set default_offer = host.public_offers[0] if host.public_offers else {} %}
 <section class="host-detail-header">
@@ -13,6 +13,11 @@
       <p class="eyebrow">{{ tier_labels[host.recommendation_tier] }}</p>
       <h1>{{ host.name }}</h1>
       <p>{{ host.summary or "No public summary yet." }}</p>
+      {% if host.hosting_types %}
+        <div class="pill-row">
+          {% for hosting_type in host.hosting_types %}<span class="pill">{{ hosting_type_labels.get(hosting_type, hosting_type) }}</span>{% endfor %}
+        </div>
+      {% endif %}
       {% if host.tags %}
         <div class="pill-row">
           {% for tag in host.tags %}<span class="pill">{{ tag }}</span>{% endfor %}

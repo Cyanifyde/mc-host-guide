@@ -7,6 +7,8 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from host_store import (
     CATEGORY_LABELS,
+    HOSTING_TYPE_LABELS,
+    HOSTING_TYPE_OPTIONS,
     ROOT_DIR,
     STATUS_LABELS,
     TIER_LABELS,
@@ -45,6 +47,8 @@ def build_site() -> dict[str, int]:
         "tier_labels": TIER_LABELS,
         "category_labels": CATEGORY_LABELS,
         "status_labels": STATUS_LABELS,
+        "hosting_type_options": HOSTING_TYPE_OPTIONS,
+        "hosting_type_labels": HOSTING_TYPE_LABELS,
     }
 
     top_hosts = [

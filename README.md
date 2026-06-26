@@ -1,6 +1,6 @@
 # mc-host-guide
 
-Local Python CMS and generated GitHub Pages site for Minecraft hosting recommendations.
+Local Python CMS and generated GitHub Pages site for Minecraft, Discord bot, VPS, and dedicated hosting recommendations.
 
 ## Local workflow
 
@@ -31,7 +31,7 @@ If automatic Pages configuration fails, open the GitHub repo settings and choose
 
 ## Data model
 
-Rankings are manual. Each host has a tier, drag-saved rank, category picks, tags, location tags, CPU/GHz/memory/benchmark fields, structured plan rows, support channels, hosting feature notes, source URLs, status, and trust notes. Built-in host tags include `scam` and `dangerous` for risk labeling.
+Rankings are manual. Each host has hosting type selectors, a tier, drag-saved rank, category picks, tags, location tags, CPU/GHz/memory/benchmark fields, structured plan rows, support channels, hosting feature notes, source URLs, status, and trust notes. Built-in host tags include `scam` and `dangerous` for risk labeling.
 
 Plan rows support separate public offers with:
 

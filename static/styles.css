@@ -252,7 +252,7 @@ legend {
 
 .filter-bar {
   display: grid;
-  grid-template-columns: minmax(220px, 1.5fr) repeat(6, minmax(120px, 1fr)) auto;
+  grid-template-columns: minmax(220px, 1.5fr) repeat(7, minmax(120px, 1fr)) auto;
   gap: 8px;
   align-items: end;
   margin-bottom: 10px;
@@ -565,7 +565,7 @@ textarea {
 }
 
 .host-table {
-  min-width: 1320px;
+  min-width: 1450px;
 }
 
 .directory-table {

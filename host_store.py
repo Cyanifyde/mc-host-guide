@@ -51,10 +51,19 @@ STATUS_LABELS = {
     "inactive": "Inactive",
 }
 
+HOSTING_TYPE_OPTIONS = ["minecraft", "discord_bot", "vps", "dedicated"]
+HOSTING_TYPE_LABELS = {
+    "minecraft": "Minecraft hosting",
+    "discord_bot": "Discord bot hosting",
+    "vps": "VPS",
+    "dedicated": "Dedicated server",
+}
+
 HOST_TAG_OPTIONS = ["scam", "dangerous"]
 
 LIST_FIELDS = [
     "category_picks",
+    "hosting_types",
     "tags",
     "location_tags",
     "support_channels",
@@ -127,6 +136,7 @@ DEFAULT_HOST: dict[str, Any] = {
     "recommendation_tier": "unreviewed",
     "rank": 999,
     "category_picks": [],
+    "hosting_types": ["minecraft"],
     "tags": [],
     "location_tags": [],
     "pros": [],
@@ -250,6 +260,13 @@ def normalize_host(host: dict[str, Any]) -> dict[str, Any]:
     clean["category_picks"] = [
         category for category in clean["category_picks"] if category in CATEGORY_OPTIONS
     ]
+    clean["hosting_types"] = [
+        hosting_type
+        for hosting_type in clean["hosting_types"]
+        if hosting_type in HOSTING_TYPE_OPTIONS
+    ]
+    if not clean["hosting_types"]:
+        clean["hosting_types"] = ["minecraft"]
     clean["tags"] = sorted({tag.lower() for tag in clean["tags"]})
     clean["location_tags"] = sorted({tag.lower() for tag in clean["location_tags"]})
     clean["support_channels"] = sorted({tag.lower() for tag in clean["support_channels"]})

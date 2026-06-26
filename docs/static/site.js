@@ -22,6 +22,7 @@ function wireDirectoryFilters() {
   const sort = root.querySelector("[data-filter-sort]");
   const tier = root.querySelector("[data-filter-tier]");
   const category = root.querySelector("[data-filter-category]");
+  const hostingType = root.querySelector("[data-filter-hosting-type]");
   const status = root.querySelector("[data-filter-status]");
   const counts = Array.from(document.querySelectorAll("[data-result-count]"));
   const empty = document.querySelector("[data-empty-results]");
@@ -291,6 +292,7 @@ function wireDirectoryFilters() {
     sort.value = params.get("sort") || localStorage.getItem("mcHostSort") || "rank";
     tier.value = params.get("tier") || "";
     category.value = params.get("category") || "";
+    hostingType.value = params.get("hosting_type") || "";
     status.value = params.get("status") || "";
 
     for (const input of rangeInputs) {
@@ -344,6 +346,7 @@ function wireDirectoryFilters() {
     if (sort.value !== "rank") params.set("sort", sort.value);
     if (tier.value) params.set("tier", tier.value);
     if (category.value) params.set("category", category.value);
+    if (hostingType.value) params.set("hosting_type", hostingType.value);
     if (status.value) params.set("status", status.value);
 
     for (const input of rangeInputs) {
@@ -367,6 +370,8 @@ function wireDirectoryFilters() {
     const matchesTier = !tier.value || row.dataset.tier === tier.value;
     const matchesCategory =
       !category.value || splitValues(row.dataset.categories).includes(category.value);
+    const matchesHostingType =
+      !hostingType.value || splitValues(row.dataset.hostingTypes).includes(hostingType.value);
     const matchesStatus = !status.value || row.dataset.status === status.value;
     const matchesGroups = chipGroups.every((group) => {
       if (group.offerKey) return true;
@@ -374,7 +379,15 @@ function wireDirectoryFilters() {
       return Array.from(group.active).every((value) => rowValues.includes(value));
     });
     const matchesOffers = candidateOffers(row).length > 0;
-    return matchesQuery && matchesTier && matchesCategory && matchesStatus && matchesGroups && matchesOffers;
+    return (
+      matchesQuery
+      && matchesTier
+      && matchesCategory
+      && matchesHostingType
+      && matchesStatus
+      && matchesGroups
+      && matchesOffers
+    );
   }
 
   function compareNumber(a, b, key, direction = "desc") {
@@ -433,6 +446,7 @@ function wireDirectoryFilters() {
     for (const item of [
       ["Tier", tier],
       ["Category", category],
+      ["Type", hostingType],
       ["Status", status],
     ]) {
       const [label, input] = item;
@@ -493,7 +507,7 @@ function wireDirectoryFilters() {
 
   const debouncedApply = debounce(applyFilters);
   search.addEventListener("input", debouncedApply);
-  for (const input of [sort, tier, category, status]) {
+  for (const input of [sort, tier, category, hostingType, status]) {
     input.addEventListener("change", applyFilters);
   }
   for (const input of rangeInputs) {

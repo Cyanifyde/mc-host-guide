@@ -9,7 +9,7 @@
     <div class="utility-controls sidebar-controls">
       <label>
         <span>Search</span>
-        <input data-filter-search placeholder="host, CPU, plan, region, support">
+        <input data-filter-search placeholder="host, CPU, plan, region, type, support">
       </label>
       <label>
         <span>Sort</span>
@@ -49,6 +49,15 @@
             <option value="">All categories</option>
             {% for category, label in category_labels.items() %}
               <option value="{{ category }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Type</span>
+          <select data-filter-hosting-type>
+            <option value="">All types</option>
+            {% for hosting_type in hosting_type_options %}
+              <option value="{{ hosting_type }}">{{ hosting_type_labels[hosting_type] }}</option>
             {% endfor %}
           </select>
         </label>
@@ -184,7 +193,7 @@
     </div>
     <section class="directory-table-shell">
   <table class="directory-table" data-directory-list>
-    <caption class="sr-only">Minecraft hosting providers with specs, regions, plans, and support details</caption>
+    <caption class="sr-only">Hosting providers with specs, regions, plans, and support details</caption>
     <thead>
       <tr>
         <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="rank">Rank</button></th>
@@ -201,12 +210,13 @@
         {% set default_offer = host.public_offers[0] if host.public_offers else {} %}
         <tr class="host-row"
             data-offers='{{ host.public_offers|tojson }}'
-            data-search="{{ host.name }} {{ host.summary }} {{ host.cpu_model }} {{ host.cpu_vendor }} {{ host.locations|join(' ') }} {{ host.location_tags|join(' ') }} {{ host.tags|join(' ') }} {{ host.support_channels|join(' ') }} {{ host.support_notes }} {{ host.category_picks|join(' ') }} {% for tier in host.hardware_tiers %} {{ tier.name }} {{ tier.cpu_model }} {{ tier.cpu_cores }} {{ tier.location_tags|join(' ') }} {{ tier.locations|join(' ') }} {{ tier.panel }} {{ tier.ddos_protection }} {{ tier.modpack_support }} {{ tier.support_channels|join(' ') }} {{ tier.server_types|join(' ') }} {% endfor %} {% for offer in host.public_offers %} {{ offer.planName }} {{ offer.hardwareName }} {{ offer.price }} {{ offer.planRam }} {{ offer.cores }} {{ offer.players }} {{ offer.cpuModel }} {{ offer.locationTags|join(' ') }} {{ offer.panel }} {{ offer.ddosProtection }} {{ offer.modpackSupport }} {{ offer.supportChannels|join(' ') }} {{ offer.serverTypes|join(' ') }} {{ offer.notes }} {{ offer.hardwareNotes }} {% endfor %}"
+            data-search="{{ host.name }} {{ host.summary }} {{ host.cpu_model }} {{ host.cpu_vendor }} {{ host.locations|join(' ') }} {{ host.location_tags|join(' ') }} {{ host.tags|join(' ') }} {% for hosting_type in host.hosting_types %} {{ hosting_type }} {{ hosting_type_labels.get(hosting_type, hosting_type) }} {% endfor %} {{ host.support_channels|join(' ') }} {{ host.support_notes }} {{ host.category_picks|join(' ') }} {% for tier in host.hardware_tiers %} {{ tier.name }} {{ tier.cpu_model }} {{ tier.cpu_cores }} {{ tier.location_tags|join(' ') }} {{ tier.locations|join(' ') }} {{ tier.panel }} {{ tier.ddos_protection }} {{ tier.modpack_support }} {{ tier.support_channels|join(' ') }} {{ tier.server_types|join(' ') }} {% endfor %} {% for offer in host.public_offers %} {{ offer.planName }} {{ offer.hardwareName }} {{ offer.price }} {{ offer.planRam }} {{ offer.cores }} {{ offer.players }} {{ offer.cpuModel }} {{ offer.locationTags|join(' ') }} {{ offer.panel }} {{ offer.ddosProtection }} {{ offer.modpackSupport }} {{ offer.supportChannels|join(' ') }} {{ offer.serverTypes|join(' ') }} {{ offer.notes }} {{ offer.hardwareNotes }} {% endfor %}"
             data-name="{{ host.name|lower }}"
             data-rank="{{ host.rank }}"
             data-tier="{{ host.recommendation_tier }}"
             data-tier-order="{% if host.recommendation_tier == 'top_pick' %}1{% elif host.recommendation_tier == 'recommended' %}2{% elif host.recommendation_tier == 'situational' %}3{% elif host.recommendation_tier == 'avoid' %}4{% else %}5{% endif %}"
             data-status="{{ host.status }}"
+            data-hosting-types="{{ host.hosting_types|join(' ') }}"
             data-base-ghz="{{ host.advertised_clock_ghz }}"
             data-peak-ghz="{{ host.boost_clock_ghz }}"
             data-memory-speed="{{ host.memory_speed_mhz }}"
@@ -233,6 +243,11 @@
               <span>{{ status_labels[host.status] }}</span>
             </div>
             <small>{{ host.summary or "No summary" }}</small>
+            <div class="pill-row compact-pills">
+              {% for hosting_type in host.hosting_types %}
+                <span class="pill">{{ hosting_type_labels.get(hosting_type, hosting_type) }}</span>
+              {% endfor %}
+            </div>
             <div class="pill-row compact-pills">
               {% for tag in host.tags[:4] %}
                 <span class="pill">{{ tag }}</span>

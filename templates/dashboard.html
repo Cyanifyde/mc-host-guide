@@ -41,6 +41,15 @@
     </select>
   </label>
   <label>
+    <span>Type</span>
+    <select name="hosting_type">
+      <option value="">All types</option>
+      {% for hosting_type in hosting_type_options %}
+        <option value="{{ hosting_type }}" {% if filters.hosting_type == hosting_type %}selected{% endif %}>{{ hosting_type_labels[hosting_type] }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>
     <span>Status</span>
     <select name="status">
       <option value="">All statuses</option>
@@ -86,6 +95,7 @@
         <th>Rank</th>
         <th>Host</th>
         <th>Tier</th>
+        <th>Type</th>
         <th>Tags</th>
         <th>Regions</th>
         <th>Specs</th>
@@ -105,6 +115,13 @@
             <small>{{ host.summary or "No summary yet" }}</small>
           </td>
           <td><span class="badge tier-{{ host.recommendation_tier }}">{{ tier_labels[host.recommendation_tier] }}</span></td>
+          <td>
+            {% for hosting_type in host.hosting_types %}
+              <span class="pill">{{ hosting_type_labels.get(hosting_type, hosting_type) }}</span>
+            {% else %}
+              <span class="muted">None</span>
+            {% endfor %}
+          </td>
           <td>
             {% for tag in host.tags %}
               <span class="pill">{{ tag }}</span>

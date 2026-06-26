@@ -19,6 +19,8 @@ from host_store import (
     CATEGORY_LABELS,
     CATEGORY_OPTIONS,
     DEFAULT_HOST,
+    HOSTING_TYPE_LABELS,
+    HOSTING_TYPE_OPTIONS,
     HOST_TAG_OPTIONS,
     STATUS_LABELS,
     STATUS_OPTIONS,
@@ -51,6 +53,8 @@ def inject_options():
         "category_labels": CATEGORY_LABELS,
         "status_options": STATUS_OPTIONS,
         "status_labels": STATUS_LABELS,
+        "hosting_type_options": HOSTING_TYPE_OPTIONS,
+        "hosting_type_labels": HOSTING_TYPE_LABELS,
         "host_tag_options": HOST_TAG_OPTIONS,
     }
 
@@ -61,6 +65,7 @@ def dashboard():
     query = request.args.get("q", "").strip().lower()
     tier = request.args.get("tier", "").strip()
     category = request.args.get("category", "").strip()
+    hosting_type = request.args.get("hosting_type", "").strip()
     status = request.args.get("status", "").strip()
     tag = request.args.get("tag", "").strip().lower()
     location_tag = request.args.get("location_tag", "").strip().lower()
@@ -85,6 +90,10 @@ def dashboard():
                     host.get("benchmark_score", ""),
                     host.get("support_notes", ""),
                     " ".join(host.get("tags", [])),
+                    " ".join(
+                        HOSTING_TYPE_LABELS.get(host_type, host_type)
+                        for host_type in host.get("hosting_types", [])
+                    ),
                     " ".join(host.get("location_tags", [])),
                     " ".join(host.get("support_channels", [])),
                     " ".join(host.get("locations", [])),
@@ -99,6 +108,8 @@ def dashboard():
         filtered = [host for host in filtered if host.get("recommendation_tier") == tier]
     if category:
         filtered = [host for host in filtered if category in host.get("category_picks", [])]
+    if hosting_type:
+        filtered = [host for host in filtered if hosting_type in host.get("hosting_types", [])]
     if status:
         filtered = [host for host in filtered if host.get("status") == status]
     if tag:
@@ -131,6 +142,7 @@ def dashboard():
             "q": query,
             "tier": tier,
             "category": category,
+            "hosting_type": hosting_type,
             "status": status,
             "tag": tag,
             "location_tag": location_tag,
@@ -317,6 +329,11 @@ def host_from_form(existing_ids: set[str], existing: dict | None = None) -> dict
         category
         for category in request.form.getlist("category_picks")
         if category in CATEGORY_OPTIONS
+    ]
+    host["hosting_types"] = [
+        hosting_type
+        for hosting_type in request.form.getlist("hosting_types")
+        if hosting_type in HOSTING_TYPE_OPTIONS
     ]
     host["locations"] = normalize_list(request.form.get("locations", ""))
     host["location_tags"] = normalize_list(request.form.get("location_tags", ""))

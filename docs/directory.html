@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Minecraft Host Directory</title>
-  <meta name="description" content="Manual Minecraft host recommendations with CPU, GHz, region, plan, RAM, player, support, trust, and feature notes.">
+  <title>Host Directory</title>
+  <meta name="description" content="Manual hosting recommendations for Minecraft, Discord bots, VPS, and dedicated servers with CPU, region, plan, RAM, support, trust, and feature notes.">
   <link rel="stylesheet" href="static/styles.css">
   <script src="static/site.js" defer></script>
 </head>
 <body class="public-shell">
   <header class="site-header">
     <a class="brand" href="index.html">
-      <span class="brand-mark">MC</span>
+      <span class="brand-mark">HG</span>
       <span>
-        <strong>Minecraft Host Guide</strong>
+        <strong>Host Guide</strong>
         <small>Host directory</small>
       </span>
     </a>
@@ -27,7 +27,7 @@
 <section class="utility-heading">
   <div>
     <h1>All hosts</h1>
-    <p>0 published hosts. Results update in the browser across regions, plans, support, and hardware specs.</p>
+    <p>0 published hosts. Results update in the browser across hosting types, regions, plans, support, and hardware specs.</p>
   </div>
 </section>
 
@@ -42,7 +42,7 @@
     <div class="utility-controls sidebar-controls">
       <label>
         <span>Search</span>
-        <input data-filter-search placeholder="host, CPU, plan, region, support">
+        <input data-filter-search placeholder="host, CPU, plan, region, type, support">
       </label>
       <label>
         <span>Sort</span>
@@ -90,6 +90,16 @@
               <option value="small_servers">Small servers</option>
               <option value="large_servers">Large servers</option>
               <option value="regional">Regional</option>
+          </select>
+        </label>
+        <label>
+          <span>Type</span>
+          <select data-filter-hosting-type>
+            <option value="">All types</option>
+              <option value="minecraft">Minecraft hosting</option>
+              <option value="discord_bot">Discord bot hosting</option>
+              <option value="vps">VPS</option>
+              <option value="dedicated">Dedicated server</option>
           </select>
         </label>
         <label>
@@ -216,7 +226,7 @@
     </div>
     <section class="directory-table-shell">
   <table class="directory-table" data-directory-list>
-    <caption class="sr-only">Minecraft hosting providers with specs, regions, plans, and support details</caption>
+    <caption class="sr-only">Hosting providers with specs, regions, plans, and support details</caption>
     <thead>
       <tr>
         <th scope="col"><button class="sort-header" type="button" data-sort-button data-sort-value="rank">Rank</button></th>

@@ -71,6 +71,15 @@
         </select>
       </label>
       <fieldset class="checkbox-grid span-2">
+        <legend>Hosting types</legend>
+        {% for hosting_type in hosting_type_options %}
+          <label>
+            <input type="checkbox" name="hosting_types" value="{{ hosting_type }}" {% if hosting_type in host.hosting_types %}checked{% endif %}>
+            <span>{{ hosting_type_labels[hosting_type] }}</span>
+          </label>
+        {% endfor %}
+      </fieldset>
+      <fieldset class="checkbox-grid span-2">
         <legend>Category picks</legend>
         {% for category in category_options %}
           <label>
