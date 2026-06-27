@@ -15,7 +15,7 @@
   <nav class="form-nav" aria-label="Edit sections">
     <a href="#identity">Identity</a>
     <a href="#ranking">Ranking</a>
-    <a href="#plans">Tiers</a>
+    <a href="#plans">Plans</a>
     <a href="#defaults">Fallbacks</a>
     <a href="#editorial">Editorial</a>
   </nav>
@@ -128,11 +128,152 @@
   <section class="form-section" id="plans">
     <div class="section-heading compact">
       <div>
-        <h2>Tiers</h2>
-        <p class="muted">Each card is one real purchasable tier. Price, RAM, CPU/specs, regions, support, storage, panel, DDoS, modpacks, URL, and notes all live together.</p>
+        <h2>Plans and estimates</h2>
+        <p class="muted">Use rough packages when a host publishes CPU families or custom sliders. Use exact plans only when exact rows matter.</p>
       </div>
-      <button class="button" type="button" data-add-plan>Add tier</button>
     </div>
+
+    <fieldset class="mode-switch" data-plan-mode-switch>
+      <legend>Entry mode</legend>
+      <label>
+        <input type="radio" name="plan_entry_mode" value="estimated" {% if host.plan_entry_mode != "exact" %}checked{% endif %}>
+        <span>Rough pricing packages</span>
+      </label>
+      <label>
+        <input type="radio" name="plan_entry_mode" value="exact" {% if host.plan_entry_mode == "exact" %}checked{% endif %}>
+        <span>Exact published plans</span>
+      </label>
+    </fieldset>
+
+    <div class="entry-panel" data-entry-panel="estimated" {% if host.plan_entry_mode == "exact" %}hidden{% endif %}>
+      <div class="sheet-section" data-package-editor>
+        <div class="sheet-heading">
+          <div>
+            <h3>Pricing packages</h3>
+            <p class="muted">One row per named package, with its own $/GB, RAM range, regions, support, and features.</p>
+          </div>
+          <button class="button" type="button" data-add-package>Add package</button>
+        </div>
+        <datalist id="package-name-options">
+          {% for package in host.pricing_packages %}
+            <option value="{{ package.name or package.id }}"></option>
+          {% endfor %}
+        </datalist>
+        <div class="sheet-rows" data-package-rows>
+          {% set packages = host.pricing_packages if host.pricing_packages else [{}] %}
+          {% for package in packages %}
+            <div class="sheet-row package-row" data-package-row>
+              <input type="hidden" name="package_id" value="{{ package.get('id', '') }}">
+              <label><span>Package</span><input name="package_name" value="{{ package.get('name', '') }}" placeholder="Budget Ryzen" data-package-name></label>
+              <label><span>$/GB</span><input name="package_price_per_gb_usd" value="{{ package.get('price_per_gb_usd', '') }}" type="number" min="0" step="0.01" inputmode="decimal" data-plan-number></label>
+              <label><span>RAM min GB</span><input name="package_ram_min_gb" value="{{ package.get('ram_min_gb', '') }}" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+              <label><span>RAM max GB</span><input name="package_ram_max_gb" value="{{ package.get('ram_max_gb', '') }}" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+              <label><span>Players / GB</span><input name="package_player_slots_per_gb" value="{{ package.get('player_slots_per_gb', '') }}" type="number" min="0" step="0.1" inputmode="decimal" data-plan-number></label>
+              <label><span>Rec. players / GB</span><input name="package_recommended_players_per_gb" value="{{ package.get('recommended_players_per_gb', '') }}" type="number" min="0" step="0.1" inputmode="decimal" data-plan-number></label>
+              <label><span>Storage GB</span><input name="package_storage_gb" value="{{ package.get('storage_gb', '') }}" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+              <label><span>Storage type</span><input name="package_storage_type" value="{{ package.get('storage_type', '') }}" placeholder="NVMe SSD"></label>
+              <label><span>Panel</span><input name="package_panel" value="{{ package.get('panel', '') }}" placeholder="Pterodactyl"></label>
+              <label><span>DDoS</span><input name="package_ddos_protection" value="{{ package.get('ddos_protection', '') }}"></label>
+              <label><span>Modpacks</span><input name="package_modpack_support" value="{{ package.get('modpack_support', '') }}"></label>
+              <label class="sheet-wide"><span>Plan URL</span><input name="package_plan_url" value="{{ package.get('plan_url', '') }}" type="url"></label>
+              <label><span>RAM samples</span><textarea name="package_sample_ram_gb" rows="2" placeholder="4&#10;8&#10;16">{{ package.get('sample_ram_gb', [])|join('\n') }}</textarea></label>
+              <label><span>Regions</span><textarea name="package_location_tags" rows="2" placeholder="us-east&#10;eu-west">{{ package.get('location_tags', [])|join('\n') }}</textarea></label>
+              <label><span>Locations</span><textarea name="package_locations" rows="2">{{ package.get('locations', [])|join('\n') }}</textarea></label>
+              <label><span>Support</span><textarea name="package_support_channels" rows="2" placeholder="tickets&#10;discord">{{ package.get('support_channels', [])|join('\n') }}</textarea></label>
+              <label><span>Server types</span><textarea name="package_server_types" rows="2">{{ package.get('server_types', [])|join('\n') }}</textarea></label>
+              <label class="sheet-wide"><span>Price notes</span><textarea name="package_price_notes" rows="2">{{ package.get('price_notes', '') }}</textarea></label>
+              <label class="sheet-wide"><span>Support notes</span><textarea name="package_support_notes" rows="2">{{ package.get('support_notes', '') }}</textarea></label>
+              <label class="sheet-full"><span>Package notes</span><input name="package_notes" value="{{ package.get('notes', '') }}"></label>
+              <button class="button danger icon-button" type="button" data-remove-package>Remove</button>
+            </div>
+          {% endfor %}
+        </div>
+        <template data-package-template>
+          <div class="sheet-row package-row" data-package-row>
+            <input type="hidden" name="package_id">
+            <label><span>Package</span><input name="package_name" placeholder="Budget Ryzen" data-package-name></label>
+            <label><span>$/GB</span><input name="package_price_per_gb_usd" type="number" min="0" step="0.01" inputmode="decimal" data-plan-number></label>
+            <label><span>RAM min GB</span><input name="package_ram_min_gb" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+            <label><span>RAM max GB</span><input name="package_ram_max_gb" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+            <label><span>Players / GB</span><input name="package_player_slots_per_gb" type="number" min="0" step="0.1" inputmode="decimal" data-plan-number></label>
+            <label><span>Rec. players / GB</span><input name="package_recommended_players_per_gb" type="number" min="0" step="0.1" inputmode="decimal" data-plan-number></label>
+            <label><span>Storage GB</span><input name="package_storage_gb" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+            <label><span>Storage type</span><input name="package_storage_type" placeholder="NVMe SSD"></label>
+            <label><span>Panel</span><input name="package_panel" placeholder="Pterodactyl"></label>
+            <label><span>DDoS</span><input name="package_ddos_protection"></label>
+            <label><span>Modpacks</span><input name="package_modpack_support"></label>
+            <label class="sheet-wide"><span>Plan URL</span><input name="package_plan_url" type="url"></label>
+            <label><span>RAM samples</span><textarea name="package_sample_ram_gb" rows="2" placeholder="4&#10;8&#10;16"></textarea></label>
+            <label><span>Regions</span><textarea name="package_location_tags" rows="2" placeholder="us-east&#10;eu-west"></textarea></label>
+            <label><span>Locations</span><textarea name="package_locations" rows="2"></textarea></label>
+            <label><span>Support</span><textarea name="package_support_channels" rows="2" placeholder="tickets&#10;discord"></textarea></label>
+            <label><span>Server types</span><textarea name="package_server_types" rows="2"></textarea></label>
+            <label class="sheet-wide"><span>Price notes</span><textarea name="package_price_notes" rows="2"></textarea></label>
+            <label class="sheet-wide"><span>Support notes</span><textarea name="package_support_notes" rows="2"></textarea></label>
+            <label class="sheet-full"><span>Package notes</span><input name="package_notes"></label>
+            <button class="button danger icon-button" type="button" data-remove-package>Remove</button>
+          </div>
+        </template>
+      </div>
+
+      <div class="sheet-section" data-cpu-editor>
+        <div class="sheet-heading">
+          <div>
+            <h3>CPU options</h3>
+            <p class="muted">Attach each CPU to a package. The site generates RAM sample rows from that package's pricing.</p>
+          </div>
+          <button class="button" type="button" data-add-cpu>Add CPU</button>
+        </div>
+        <div class="sheet-rows" data-cpu-rows>
+          {% set cpus = host.cpu_options if host.cpu_options else [{}] %}
+          {% for cpu in cpus %}
+            <div class="sheet-row cpu-row" data-cpu-row>
+              <input type="hidden" name="cpu_id" value="{{ cpu.get('id', '') }}">
+              <label><span>CPU label</span><input name="cpu_label" value="{{ cpu.get('label', '') }}" placeholder="Premium Ryzen"></label>
+              <label><span>Package</span><input name="cpu_package_id" value="{{ cpu.get('package_id', '') }}" list="package-name-options" placeholder="Budget Ryzen"></label>
+              <label class="sheet-wide"><span>CPU model</span><input name="cpu_cpu_model" value="{{ cpu.get('cpu_model', '') }}" placeholder="Ryzen 9 7950X"></label>
+              <label><span>Vendor</span><input name="cpu_cpu_vendor" value="{{ cpu.get('cpu_vendor', '') }}" placeholder="AMD / Intel"></label>
+              <label><span>Cores</span><input name="cpu_cpu_cores" value="{{ cpu.get('cpu_cores', '') }}" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+              <label><span>Allocation</span><input name="cpu_cpu_allocation" value="{{ cpu.get('cpu_allocation', '') }}" placeholder="shared / dedicated"></label>
+              <label><span>Base GHz</span><input name="cpu_advertised_clock_ghz" value="{{ cpu.get('advertised_clock_ghz', '') }}" type="number" min="0" step="0.1" inputmode="decimal" data-plan-number></label>
+              <label><span>Peak GHz</span><input name="cpu_boost_clock_ghz" value="{{ cpu.get('boost_clock_ghz', '') }}" type="number" min="0" step="0.1" inputmode="decimal" data-plan-number></label>
+              <label><span>Memory MHz</span><input name="cpu_memory_speed_mhz" value="{{ cpu.get('memory_speed_mhz', '') }}" type="number" min="0" step="100" inputmode="numeric" data-plan-number></label>
+              <label><span>Benchmark</span><input name="cpu_benchmark_score" value="{{ cpu.get('benchmark_score', '') }}" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
+              <label class="sheet-full"><span>CPU notes</span><input name="cpu_option_notes" value="{{ cpu.get('notes', '') }}"></label>
+              <button class="button danger icon-button" type="button" data-remove-cpu>Remove</button>
+            </div>
+          {% endfor %}
+        </div>
+        <template data-cpu-template>
+          <div class="sheet-row cpu-row" data-cpu-row>
+            <input type="hidden" name="cpu_id">
+            <label><span>CPU label</span><input name="cpu_label" placeholder="Premium Ryzen"></label>
+            <label><span>Package</span><input name="cpu_package_id" list="package-name-options" placeholder="Budget Ryzen"></label>
+            <label class="sheet-wide"><span>CPU model</span><input name="cpu_cpu_model" placeholder="Ryzen 9 7950X"></label>
+            <label><span>Vendor</span><input name="cpu_cpu_vendor" placeholder="AMD / Intel"></label>
+            <label><span>Cores</span><input name="cpu_cpu_cores" type="number" min="0" step="0.5" inputmode="decimal" data-plan-number></label>
+            <label><span>Allocation</span><input name="cpu_cpu_allocation" placeholder="shared / dedicated"></label>
+            <label><span>Base GHz</span><input name="cpu_advertised_clock_ghz" type="number" min="0" step="0.1" inputmode="decimal" data-plan-number></label>
+            <label><span>Peak GHz</span><input name="cpu_boost_clock_ghz" type="number" min="0" step="0.1" inputmode="decimal" data-plan-number></label>
+            <label><span>Memory MHz</span><input name="cpu_memory_speed_mhz" type="number" min="0" step="100" inputmode="numeric" data-plan-number></label>
+            <label><span>Benchmark</span><input name="cpu_benchmark_score" type="number" min="0" step="1" inputmode="numeric" data-plan-number></label>
+            <label class="sheet-full"><span>CPU notes</span><input name="cpu_option_notes"></label>
+            <button class="button danger icon-button" type="button" data-remove-cpu>Remove</button>
+          </div>
+        </template>
+      </div>
+
+      <div class="estimate-preview" data-estimate-preview aria-live="polite"></div>
+    </div>
+
+    <div class="entry-panel" data-entry-panel="exact" {% if host.plan_entry_mode != "exact" %}hidden{% endif %}>
+      <div class="sheet-heading">
+        <div>
+          <h3>Exact published plans</h3>
+          <p class="muted">Each row is one real purchasable plan with its own exact price and specs.</p>
+        </div>
+        <button class="button" type="button" data-add-plan>Add exact plan</button>
+      </div>
     <div class="plan-editor" data-plan-editor>
       <div class="plan-rows" data-plan-rows>
         {% set plans = plan_tiers if plan_tiers else [{}] %}
@@ -140,7 +281,7 @@
           <div class="plan-row" data-plan-row>
             <div class="tier-card-head">
               <label>
-                <span>Tier name</span>
+                <span>Plan name</span>
                 <input name="plan_name" value="{{ plan.get('name', '') }}" placeholder="8 GB Ryzen EU">
               </label>
               <button class="button danger icon-button" type="button" data-remove-plan title="Remove tier">Remove</button>
@@ -190,7 +331,7 @@
       <template data-plan-template>
         <div class="plan-row" data-plan-row>
           <div class="tier-card-head">
-            <label><span>Tier name</span><input name="plan_name" placeholder="8 GB Ryzen EU"></label>
+            <label><span>Plan name</span><input name="plan_name" placeholder="8 GB Ryzen EU"></label>
             <button class="button danger icon-button" type="button" data-remove-plan title="Remove tier">Remove</button>
           </div>
           <div class="tier-group">
@@ -234,6 +375,7 @@
           </div>
         </div>
       </template>
+    </div>
     </div>
   </section>
 

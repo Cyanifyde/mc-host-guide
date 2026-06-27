@@ -187,7 +187,7 @@
     <div class="results-toolbar">
       <div>
         <span><strong data-result-count aria-live="polite">{{ hosts|length }}</strong> matching hosts</span>
-        <span class="muted">Rows rotate to the tier that matches your filters and sort.</span>
+        <span class="muted">Rows rotate to the plan or estimate that matches your filters and sort.</span>
       </div>
       <div class="active-filters" data-active-filters aria-label="Active filters"></div>
     </div>
@@ -239,7 +239,7 @@
             <div class="host-cell-meta">
               <span>#{{ host.rank }}</span>
               <span class="badge tier-{{ host.recommendation_tier }}">{{ tier_labels[host.recommendation_tier] }}</span>
-              <span class="shown-tier" data-selected-tier-chip>Showing {{ default_offer.get("label", "Default tier") }}</span>
+              <span class="shown-tier" data-selected-tier-chip>{% if default_offer.get("estimated") %}Estimated{% else %}Showing{% endif %} {{ default_offer.get("label", "Default tier") }}</span>
               <span>{{ status_labels[host.status] }}</span>
             </div>
             <small>{{ host.summary or "No summary" }}</small>
@@ -277,7 +277,7 @@
           </td>
           <td data-label="Plans">
             <strong data-selected-price>
-              {% if default_offer.get("price") %}${{ default_offer.get("price") }}/mo{% else %}No price{% endif %}
+              {% if default_offer.get("price") %}{% if default_offer.get("estimated") %}Approx. {% endif %}${{ default_offer.get("price") }}/mo{% else %}No price{% endif %}
             </strong>
             <small data-selected-plan>{{ default_offer.get("planName", "Plan") }}</small>
             <small data-selected-plan-detail>
@@ -285,7 +285,7 @@
               - {{ default_offer.get("players") or "-" }} slots
               - {{ default_offer.get("storage") or "-" }} GB storage
             </small>
-            <small class="offer-count">{{ host.tier_option_count }} tier option{% if host.tier_option_count != 1 %}s{% endif %}</small>
+            <small class="offer-count">{{ host.tier_option_count }} comparison row{% if host.tier_option_count != 1 %}s{% endif %}</small>
           </td>
           <td data-label="$/GB" class="value-cell">
             <strong data-selected-price-per-gb>

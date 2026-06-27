@@ -12,6 +12,14 @@ function debounce(callback, delay = 140) {
   };
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
 function wireDirectoryFilters() {
   const root = document.querySelector("[data-directory-filters]");
   const table = document.querySelector("[data-directory-list]");
@@ -227,10 +235,10 @@ function wireDirectoryFilters() {
     setText(row, "[data-selected-peak]", formatMetric(offer.peakGhz, " GHz"));
     setText(row, "[data-selected-memory]", formatMetric(offer.memorySpeed, " MHz"));
     setText(row, "[data-selected-benchmark]", offer.benchmark || "-");
-    setText(row, "[data-selected-price]", offer.price ? `$${offer.price}/mo` : "No price");
+    setText(row, "[data-selected-price]", offer.price ? `${offer.estimated ? "Approx. " : ""}$${offer.price}/mo` : "No price");
     setText(row, "[data-selected-price-per-gb]", offer.pricePerGb ? `$${offer.pricePerGb}/GB` : "-");
     setText(row, "[data-selected-plan]", offer.planName || "Plan");
-    setText(row, "[data-selected-tier-chip]", `Showing ${offer.label || offer.planName || "Default tier"}`);
+    setText(row, "[data-selected-tier-chip]", `${offer.estimated ? "Estimated" : "Showing"} ${offer.label || offer.planName || "Default tier"}`);
     setText(
       row,
       "[data-selected-plan-detail]",
@@ -628,8 +636,8 @@ function wireHostTierDetail() {
     if (!row) return;
     const offer = readOffer(row);
     for (const item of rows) item.classList.toggle("selected", item === row);
-    set("[data-tier-detail-label]", offer.label || offer.planName || "Selected tier");
-    set("[data-tier-detail-price]", formatMoney(offer.price, "/mo"));
+    set("[data-tier-detail-label]", offer.label || offer.planName || "Selected plan");
+    set("[data-tier-detail-price]", offer.price ? `${offer.estimated ? "Approx. " : ""}${formatMoney(offer.price, "/mo")}` : "-");
     set("[data-tier-detail-price-per-gb]", formatMoney(offer.pricePerGb, "/GB"));
     set("[data-tier-detail-ram]", formatGb(offer.planRam));
     set("[data-tier-detail-players]", offer.players || "-");
@@ -677,12 +685,19 @@ function wireHostTierDetail() {
 }
 
 function wirePlanEditor() {
+  const form = document.querySelector("[data-host-form]");
   const root = document.querySelector("[data-plan-editor]");
-  if (!root) return;
-  const rows = root.querySelector("[data-plan-rows]");
-  const template = root.querySelector("[data-plan-template]");
-  const add = document.querySelector("[data-add-plan]");
-  const form = root.closest("form");
+  const modeSwitch = document.querySelector("[data-plan-mode-switch]");
+  const panels = Array.from(document.querySelectorAll("[data-entry-panel]"));
+  const packageRows = document.querySelector("[data-package-rows]");
+  const packageTemplate = document.querySelector("[data-package-template]");
+  const cpuRows = document.querySelector("[data-cpu-rows]");
+  const cpuTemplate = document.querySelector("[data-cpu-template]");
+  const packageOptions = document.querySelector("#package-name-options");
+  const preview = document.querySelector("[data-estimate-preview]");
+  if (!form || (!root && !modeSwitch)) return;
+
+  const defaultRamSamples = [1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 256];
 
   function setFieldError(input, message) {
     input.classList.toggle("invalid", Boolean(message));
@@ -714,29 +729,190 @@ function wirePlanEditor() {
   }
 
   function validatePlanRows() {
-    const inputs = Array.from(root.querySelectorAll("[data-plan-number]"));
+    const inputs = Array.from(form.querySelectorAll("[data-plan-number]"));
     return inputs.every(validateNumberInput);
   }
 
-  add?.addEventListener("click", () => {
-    rows.appendChild(template.content.cloneNode(true));
-    const lastRow = rows.querySelector("[data-plan-row]:last-child input");
-    lastRow?.focus();
+  function selectedMode() {
+    return form.querySelector('input[name="plan_entry_mode"]:checked')?.value || "estimated";
+  }
+
+  function syncMode() {
+    const mode = selectedMode();
+    for (const panel of panels) {
+      panel.hidden = panel.dataset.entryPanel !== mode;
+    }
+    renderEstimatePreview();
+  }
+
+  function splitValues(value) {
+    return String(value || "").split(/\n|,/).map((item) => item.trim()).filter(Boolean);
+  }
+
+  function value(row, name) {
+    return row.querySelector(`[name="${name}"]`)?.value.trim() || "";
+  }
+
+  function numberValue(raw) {
+    const value = parseNumber(raw);
+    return value === null ? null : value;
+  }
+
+  function formatNumber(value) {
+    if (value === null || value === undefined || Number.isNaN(value)) return "";
+    return Number.isInteger(value) ? String(value) : String(Number(value.toFixed(2))).replace(/\.0+$/, "");
+  }
+
+  function packageLabel(row) {
+    return value(row, "package_name") || value(row, "package_id") || "Package";
+  }
+
+  function packageKey(row) {
+    return (value(row, "package_id") || packageLabel(row)).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+
+  function readPackages() {
+    return Array.from(packageRows?.querySelectorAll("[data-package-row]") || []).map((row) => ({
+      key: packageKey(row),
+      name: packageLabel(row),
+      pricePerGb: numberValue(value(row, "package_price_per_gb_usd")),
+      ramMin: numberValue(value(row, "package_ram_min_gb")),
+      ramMax: numberValue(value(row, "package_ram_max_gb")),
+      samples: splitValues(value(row, "package_sample_ram_gb")).map(numberValue).filter((item) => item !== null && item > 0),
+      regions: splitValues(value(row, "package_location_tags")),
+      support: splitValues(value(row, "package_support_channels")),
+    })).filter((item) => item.name !== "Package" || item.pricePerGb !== null || item.ramMin !== null || item.ramMax !== null || item.samples.length);
+  }
+
+  function readCpus() {
+    return Array.from(cpuRows?.querySelectorAll("[data-cpu-row]") || []).map((row) => ({
+      label: value(row, "cpu_label") || value(row, "cpu_cpu_model") || "CPU",
+      packageKey: (value(row, "cpu_package_id") || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+      model: value(row, "cpu_cpu_model"),
+      cores: value(row, "cpu_cpu_cores"),
+      peak: value(row, "cpu_boost_clock_ghz"),
+      benchmark: value(row, "cpu_benchmark_score"),
+    })).filter((item) => item.label !== "CPU" || item.model || item.cores || item.peak || item.benchmark);
+  }
+
+  function ramSamplesForPackage(pkg) {
+    let samples = pkg.samples.length ? [...pkg.samples] : [];
+    if (!samples.length && (pkg.ramMin !== null || pkg.ramMax !== null)) {
+      const min = pkg.ramMin ?? 1;
+      const max = pkg.ramMax ?? min;
+      samples = defaultRamSamples.filter((sample) => sample >= min && sample <= max);
+    }
+    if (pkg.ramMin !== null) samples.push(pkg.ramMin);
+    if (pkg.ramMax !== null) samples.push(pkg.ramMax);
+    if (pkg.ramMin !== null) samples = samples.filter((sample) => sample >= pkg.ramMin);
+    if (pkg.ramMax !== null) samples = samples.filter((sample) => sample <= pkg.ramMax);
+    return [...new Set(samples.filter((sample) => sample > 0))].sort((a, b) => a - b);
+  }
+
+  function syncPackageOptions() {
+    if (!packageOptions) return;
+    packageOptions.textContent = "";
+    for (const pkg of readPackages()) {
+      const option = document.createElement("option");
+      option.value = pkg.name;
+      packageOptions.appendChild(option);
+    }
+  }
+
+  function renderEstimatePreview() {
+    if (!preview) return;
+    syncPackageOptions();
+    if (selectedMode() !== "estimated") {
+      preview.textContent = "";
+      return;
+    }
+    const packages = readPackages();
+    const cpus = readCpus();
+    const rows = [];
+    for (const pkg of packages) {
+      const matchingCpus = cpus.filter((cpu) => !cpu.packageKey || cpu.packageKey === pkg.key);
+      const cpuList = matchingCpus.length ? matchingCpus : [{label: "Listed CPU", model: "", cores: "", peak: "", benchmark: ""}];
+      for (const cpu of cpuList) {
+        for (const ram of ramSamplesForPackage(pkg)) {
+          rows.push({
+            label: `${pkg.name} / ${cpu.label} / ${formatNumber(ram)} GB`,
+            price: pkg.pricePerGb === null ? "" : formatNumber(pkg.pricePerGb * ram),
+            perGb: pkg.pricePerGb === null ? "" : formatNumber(pkg.pricePerGb),
+            cpu: cpu.model || cpu.label,
+            cores: cpu.cores,
+            peak: cpu.peak,
+            benchmark: cpu.benchmark,
+            regions: pkg.regions.join(", "),
+            support: pkg.support.join(", "),
+          });
+        }
+      }
+    }
+    if (!rows.length) {
+      preview.innerHTML = '<strong>Generated estimate preview</strong><p class="muted">Add a package with RAM range or samples to preview generated rows.</p>';
+      return;
+    }
+    const sampleRows = rows.slice(0, 10).map((row) => `
+      <article class="estimate-preview-card">
+        <strong>${escapeHtml(row.label)}</strong>
+        <dl>
+          <div><dt>Price</dt><dd>${row.price ? `$${escapeHtml(row.price)}/mo` : "-"}</dd></div>
+          <div><dt>$/GB</dt><dd>${row.perGb ? `$${escapeHtml(row.perGb)}/GB` : "-"}</dd></div>
+          <div><dt>CPU</dt><dd>${escapeHtml(row.cpu || "-")}</dd></div>
+          <div><dt>Cores</dt><dd>${escapeHtml(row.cores || "-")}</dd></div>
+          <div><dt>Peak</dt><dd>${row.peak ? `${escapeHtml(row.peak)} GHz` : "-"}</dd></div>
+          <div><dt>Regions</dt><dd>${escapeHtml(row.regions || "-")}</dd></div>
+        </dl>
+      </article>
+    `);
+    preview.innerHTML = `
+      <strong>Generated estimate preview</strong>
+      <p class="muted">${rows.length} estimated comparison row${rows.length === 1 ? "" : "s"} will be generated. Showing first ${Math.min(rows.length, 10)}.</p>
+      <div class="estimate-preview-list">${sampleRows.join("")}</div>
+    `;
+  }
+
+  function addFromTemplate(container, template, rowSelector) {
+    if (!container || !template) return;
+    container.appendChild(template.content.cloneNode(true));
+    container.querySelector(`${rowSelector}:last-child input`)?.focus();
+    renderEstimatePreview();
+  }
+
+  document.querySelector("[data-add-plan]")?.addEventListener("click", () => {
+    addFromTemplate(root?.querySelector("[data-plan-rows]"), root?.querySelector("[data-plan-template]"), "[data-plan-row]");
   });
 
-  root.addEventListener("click", (event) => {
-    const remove = event.target.closest("[data-remove-plan]");
-    if (!remove) return;
-    const row = remove.closest("[data-plan-row]");
-    row?.remove();
+  document.querySelector("[data-add-package]")?.addEventListener("click", () => {
+    addFromTemplate(packageRows, packageTemplate, "[data-package-row]");
   });
 
-  root.addEventListener("input", (event) => {
+  document.querySelector("[data-add-cpu]")?.addEventListener("click", () => {
+    addFromTemplate(cpuRows, cpuTemplate, "[data-cpu-row]");
+  });
+
+  form.addEventListener("click", (event) => {
+    const removePlan = event.target.closest("[data-remove-plan]");
+    const removePackage = event.target.closest("[data-remove-package]");
+    const removeCpu = event.target.closest("[data-remove-cpu]");
+    if (removePlan) removePlan.closest("[data-plan-row]")?.remove();
+    if (removePackage) removePackage.closest("[data-package-row]")?.remove();
+    if (removeCpu) removeCpu.closest("[data-cpu-row]")?.remove();
+    if (removePlan || removePackage || removeCpu) renderEstimatePreview();
+  });
+
+  form.addEventListener("input", (event) => {
     const input = event.target.closest("[data-plan-number]");
     if (input) validateNumberInput(input);
+    if (event.target.closest("[data-package-row], [data-cpu-row]")) renderEstimatePreview();
   });
 
-  root.addEventListener("blur", (event) => {
+  form.addEventListener("change", (event) => {
+    if (event.target.matches('input[name="plan_entry_mode"]')) syncMode();
+    if (event.target.closest("[data-package-row], [data-cpu-row]")) renderEstimatePreview();
+  });
+
+  form.addEventListener("blur", (event) => {
     const input = event.target.closest("[data-plan-number]");
     if (input) validateNumberInput(input);
   }, true);
@@ -744,8 +920,10 @@ function wirePlanEditor() {
   form?.addEventListener("submit", (event) => {
     if (validatePlanRows()) return;
     event.preventDefault();
-    root.querySelector(".invalid")?.focus();
+    form.querySelector(".invalid")?.focus();
   });
+
+  syncMode();
 }
 
 function wireAiImport() {
@@ -787,6 +965,12 @@ function wireAiImport() {
     const selected = new Set(values(selectedValues));
     for (const input of form.querySelectorAll(`input[name="${name}"]`)) {
       input.checked = selected.has(input.value);
+    }
+  }
+
+  function setRadioGroup(name, value) {
+    for (const input of form.querySelectorAll(`input[name="${name}"]`)) {
+      input.checked = input.value === value;
     }
   }
 
@@ -837,6 +1021,86 @@ function wireAiImport() {
         "notes",
       ]) {
         setPlanField(row, field, plan?.[field]);
+      }
+    }
+  }
+
+  function setPackageField(row, field, value) {
+    const input = row.querySelector(`[name="package_${field}"]`);
+    if (!input) return;
+    if (["sample_ram_gb", "locations", "location_tags", "support_channels", "server_types"].includes(field)) {
+      input.value = values(value).join("\n");
+      return;
+    }
+    input.value = value || "";
+  }
+
+  function replacePackageRows(packages) {
+    const rows = form.querySelector("[data-package-rows]");
+    const template = form.querySelector("[data-package-template]");
+    if (!rows || !template) return;
+    rows.textContent = "";
+    const draftPackages = packages?.length ? packages : [{}];
+    for (const packageRow of draftPackages) {
+      rows.appendChild(template.content.cloneNode(true));
+      const row = rows.querySelector("[data-package-row]:last-child");
+      for (const field of [
+        "id",
+        "name",
+        "price_per_gb_usd",
+        "ram_min_gb",
+        "ram_max_gb",
+        "plan_url",
+        "storage_gb",
+        "storage_type",
+        "panel",
+        "ddos_protection",
+        "modpack_support",
+        "player_slots_per_gb",
+        "recommended_players_per_gb",
+        "sample_ram_gb",
+        "locations",
+        "location_tags",
+        "support_channels",
+        "server_types",
+        "support_notes",
+        "price_notes",
+        "notes",
+      ]) {
+        setPackageField(row, field, packageRow?.[field]);
+      }
+    }
+  }
+
+  function setCpuField(row, field, value) {
+    const input = row.querySelector(`[name="${field === "notes" ? "cpu_option_notes" : `cpu_${field}`}"]`);
+    if (input) input.value = value || "";
+  }
+
+  function replaceCpuRows(cpus) {
+    const rows = form.querySelector("[data-cpu-rows]");
+    const template = form.querySelector("[data-cpu-template]");
+    if (!rows || !template) return;
+    rows.textContent = "";
+    const draftCpus = cpus?.length ? cpus : [{}];
+    for (const cpu of draftCpus) {
+      rows.appendChild(template.content.cloneNode(true));
+      const row = rows.querySelector("[data-cpu-row]:last-child");
+      for (const field of [
+        "id",
+        "label",
+        "package_id",
+        "cpu_model",
+        "cpu_vendor",
+        "cpu_cores",
+        "cpu_allocation",
+        "advertised_clock_ghz",
+        "boost_clock_ghz",
+        "memory_speed_mhz",
+        "benchmark_score",
+        "notes",
+      ]) {
+        setCpuField(row, field, cpu?.[field]);
       }
     }
   }
@@ -903,7 +1167,11 @@ function wireAiImport() {
     }
     setCheckboxGroup("hosting_types", host?.hosting_types || ["minecraft"]);
     setCheckboxGroup("category_picks", host?.category_picks || []);
+    setRadioGroup("plan_entry_mode", host?.plan_entry_mode || "estimated");
+    replacePackageRows(host?.pricing_packages || []);
+    replaceCpuRows(host?.cpu_options || []);
     replacePlanRows(plans || host?.plans || []);
+    form.dispatchEvent(new Event("change", {bubbles: true}));
     form.dispatchEvent(new Event("input", {bubbles: true}));
   }
 
@@ -931,7 +1199,12 @@ function wireAiImport() {
       if (!response.ok || !payload.ok) throw new Error(payload.error || "Import failed.");
       fillHost(payload.host, payload.plan_tiers);
       renderSources(payload.sources, payload.warnings);
-      setStatus(`Draft filled with ${payload.plan_tiers?.length || 0} tier row(s). Review before saving.`, "success");
+      const estimateRows = (payload.pricing_packages?.length || 0) + (payload.cpu_options?.length || 0);
+      const exactRows = payload.plan_tiers?.length || 0;
+      const modeLabel = payload.host?.plan_entry_mode === "exact"
+        ? `${exactRows} exact plan row(s)`
+        : `${estimateRows} package/CPU row(s)`;
+      setStatus(`Draft filled with ${modeLabel}. Review before saving.`, "success");
     } catch (error) {
       setStatus(error.message || "Import failed.", "error");
     } finally {

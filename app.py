@@ -23,6 +23,7 @@ from host_store import (
     HOSTING_TYPE_LABELS,
     HOSTING_TYPE_OPTIONS,
     HOST_TAG_OPTIONS,
+    PLAN_ENTRY_MODE_OPTIONS,
     STATUS_LABELS,
     STATUS_OPTIONS,
     TIER_LABELS,
@@ -103,6 +104,14 @@ def dashboard():
                         " ".join(str(value) for value in plan.values())
                         for plan in host.get("plans", [])
                     ),
+                    " ".join(
+                        " ".join(str(value) for value in package.values())
+                        for package in host.get("pricing_packages", [])
+                    ),
+                    " ".join(
+                        " ".join(str(value) for value in cpu.values())
+                        for cpu in host.get("cpu_options", [])
+                    ),
                 ]
             ).lower()
         ]
@@ -121,7 +130,12 @@ def dashboard():
             host for host in filtered if location_tag in host.get("location_tags", [])
         ]
     if support:
-        filtered = [host for host in filtered if support in host.get("support_channels", [])]
+        filtered = [
+            host
+            for host in filtered
+            if support in host.get("support_channels", [])
+            or any(support in offer.get("supportChannels", []) for offer in host.get("public_offers", []))
+        ]
 
     stats = {
         "total": len(hosts),
@@ -298,6 +312,8 @@ def import_host_ai():
             "ok": True,
             "host": host,
             "plan_tiers": editor_plan_tiers(host),
+            "pricing_packages": host.get("pricing_packages", []),
+            "cpu_options": host.get("cpu_options", []),
             "sources": result.get("sources", []),
             "warnings": result.get("warnings", []),
             "model": result.get("model", model),
@@ -372,7 +388,11 @@ def host_from_form(existing_ids: set[str], existing: dict | None = None) -> dict
     host["source_urls"] = normalize_list(request.form.get("source_urls", ""))
     host["pros"] = normalize_list(request.form.get("pros", ""))
     host["cons"] = normalize_list(request.form.get("cons", ""))
+    mode = request.form.get("plan_entry_mode", "").strip()
+    host["plan_entry_mode"] = mode if mode in PLAN_ENTRY_MODE_OPTIONS else "estimated"
     host["plans"] = plans_from_form()
+    host["pricing_packages"] = pricing_packages_from_form()
+    host["cpu_options"] = cpu_options_from_form()
     host["hardware_tiers"] = []
     return host
 
@@ -461,6 +481,78 @@ def plans_from_form() -> list[dict[str, str]]:
         if any(plan.values()):
             plans.append(plan)
     return plans
+
+
+def pricing_packages_from_form() -> list[dict[str, object]]:
+    text_fields = [
+        "id",
+        "name",
+        "price_per_gb_usd",
+        "ram_min_gb",
+        "ram_max_gb",
+        "plan_url",
+        "storage_gb",
+        "storage_type",
+        "panel",
+        "ddos_protection",
+        "modpack_support",
+        "player_slots_per_gb",
+        "recommended_players_per_gb",
+        "support_notes",
+        "price_notes",
+        "notes",
+    ]
+    list_fields = [
+        "sample_ram_gb",
+        "locations",
+        "location_tags",
+        "support_channels",
+        "server_types",
+    ]
+    posted = {field: request.form.getlist(f"package_{field}") for field in [*text_fields, *list_fields]}
+    length = max((len(values) for values in posted.values()), default=0)
+    packages = []
+    for index in range(length):
+        package = {
+            field: (posted[field][index].strip() if index < len(posted[field]) else "")
+            for field in text_fields
+        }
+        for field in list_fields:
+            package[field] = normalize_list(posted[field][index] if index < len(posted[field]) else "")
+        if any(package[field] for field in text_fields) or any(package[field] for field in list_fields):
+            packages.append(package)
+    return packages
+
+
+def cpu_options_from_form() -> list[dict[str, str]]:
+    fields = [
+        "id",
+        "label",
+        "package_id",
+        "cpu_model",
+        "cpu_vendor",
+        "cpu_cores",
+        "cpu_allocation",
+        "advertised_clock_ghz",
+        "boost_clock_ghz",
+        "memory_speed_mhz",
+        "benchmark_score",
+        "notes",
+    ]
+    posted = {
+        field: request.form.getlist("cpu_option_notes" if field == "notes" else f"cpu_{field}")
+        for field in fields
+    }
+    length = max((len(values) for values in posted.values()), default=0)
+    options = []
+    for index in range(length):
+        option = {
+            field: (posted[field][index].strip() if index < len(posted[field]) else "")
+            for field in fields
+        }
+        if any(option.values()):
+            options.append(option)
+    return options
 
 
 if __name__ == "__main__":

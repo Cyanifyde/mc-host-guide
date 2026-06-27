@@ -44,17 +44,17 @@
 <section class="detail-panel selected-tier-panel" data-tier-detail>
   <div class="selected-tier-head">
     <div>
-      <p class="eyebrow">Selected tier</p>
+      <p class="eyebrow">Selected plan / estimate</p>
       <h2 data-tier-detail-label>{{ default_offer.get("label", "Default tier") }}</h2>
     </div>
     {% if default_offer.get("url") %}
-      <a class="button primary" data-tier-detail-url href="{{ default_offer.get("url") }}" rel="noreferrer">Open tier</a>
+      <a class="button primary" data-tier-detail-url href="{{ default_offer.get("url") }}" rel="noreferrer">Open plan</a>
     {% else %}
-      <a class="button primary" data-tier-detail-url href="{{ host.plan_url or host.website_url }}" rel="noreferrer">Open tier</a>
+      <a class="button primary" data-tier-detail-url href="{{ host.plan_url or host.website_url }}" rel="noreferrer">Open plan</a>
     {% endif %}
   </div>
   <dl class="selected-tier-grid">
-    <div><dt>Price</dt><dd data-tier-detail-price>{% if default_offer.get("price") %}${{ default_offer.get("price") }}/mo{% else %}-{% endif %}</dd></div>
+    <div><dt>Price</dt><dd data-tier-detail-price>{% if default_offer.get("price") %}{% if default_offer.get("estimated") %}Approx. {% endif %}${{ default_offer.get("price") }}/mo{% else %}-{% endif %}</dd></div>
     <div><dt>Value</dt><dd data-tier-detail-price-per-gb>{% if default_offer.get("pricePerGb") %}${{ default_offer.get("pricePerGb") }}/GB{% else %}-{% endif %}</dd></div>
     <div><dt>RAM</dt><dd data-tier-detail-ram>{% if default_offer.get("planRam") %}{{ default_offer.get("planRam") }} GB{% else %}-{% endif %}</dd></div>
     <div><dt>Players</dt><dd data-tier-detail-players>{{ default_offer.get("players") or "-" }}</dd></div>
@@ -107,13 +107,13 @@
 </section>
 
 <section class="detail-panel tier-panel">
-  <h2>Tiers</h2>
+  <h2>Plans and estimates</h2>
   {% if host.public_offers %}
     <div class="table-shell inline-table">
       <table class="host-table plan-table">
         <thead>
           <tr>
-            <th>Tier</th>
+            <th>Plan / estimate</th>
             <th>$/mo</th>
             <th>$/GB</th>
             <th>RAM</th>
@@ -133,8 +133,8 @@
         <tbody>
           {% for offer in host.public_offers %}
             <tr data-tier-row data-tier-id="{{ offer.id }}" data-tier-offer='{{ offer|tojson }}' tabindex="0" {% if loop.first %}class="selected"{% endif %}>
-              <td data-label="Tier">{{ offer.label or offer.planName or "Tier" }}</td>
-              <td data-label="$/mo">{% if offer.price %}${{ offer.price }}{% else %}-{% endif %}</td>
+              <td data-label="Plan / estimate">{{ offer.label or offer.planName or "Tier" }}{% if offer.estimated %}<br><span class="muted">Estimated</span>{% endif %}</td>
+              <td data-label="$/mo">{% if offer.price %}{% if offer.estimated %}Approx. {% endif %}${{ offer.price }}{% else %}-{% endif %}</td>
               <td data-label="$/GB">{% if offer.pricePerGb %}${{ offer.pricePerGb }}/GB{% else %}-{% endif %}</td>
               <td data-label="RAM">{% if offer.planRam %}{{ offer.planRam }} GB{% else %}-{% endif %}</td>
               <td data-label="CPU">
@@ -171,13 +171,13 @@
       </table>
     </div>
   {% else %}
-    <p>No tier rows recorded.</p>
+    <p>No plan or estimate rows recorded.</p>
   {% endif %}
 </section>
 
 <section class="detail-grid">
   <article class="detail-panel">
-    <h2>Tier hardware summary</h2>
+    <h2>Hardware summary</h2>
     <dl class="spec-list expanded">
       <div><dt>CPU models</dt><dd>{{ host.cpu_model_summary or "-" }}</dd></div>
       <div><dt>CPU vendors</dt><dd>{{ host.cpu_vendor_summary or "-" }}</dd></div>

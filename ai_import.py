@@ -19,6 +19,7 @@ from host_store import (
     HOSTING_TYPE_LABELS,
     HOSTING_TYPE_OPTIONS,
     HOST_TAG_OPTIONS,
+    PLAN_ENTRY_MODE_OPTIONS,
     STATUS_OPTIONS,
     TIER_OPTIONS,
     normalize_host,
@@ -100,6 +101,46 @@ PLAN_TEXT_FIELDS = [
 ]
 
 PLAN_LIST_FIELDS = ["location_tags", "support_channels", "server_types"]
+
+PRICING_PACKAGE_TEXT_FIELDS = [
+    "id",
+    "name",
+    "price_per_gb_usd",
+    "ram_min_gb",
+    "ram_max_gb",
+    "plan_url",
+    "storage_gb",
+    "storage_type",
+    "panel",
+    "ddos_protection",
+    "modpack_support",
+    "player_slots_per_gb",
+    "recommended_players_per_gb",
+    "support_notes",
+    "price_notes",
+    "notes",
+]
+PRICING_PACKAGE_LIST_FIELDS = [
+    "sample_ram_gb",
+    "locations",
+    "location_tags",
+    "support_channels",
+    "server_types",
+]
+CPU_OPTION_TEXT_FIELDS = [
+    "id",
+    "label",
+    "package_id",
+    "cpu_model",
+    "cpu_vendor",
+    "cpu_cores",
+    "cpu_allocation",
+    "advertised_clock_ghz",
+    "boost_clock_ghz",
+    "memory_speed_mhz",
+    "benchmark_score",
+    "notes",
+]
 
 
 @dataclass
@@ -419,6 +460,48 @@ def extraction_system_prompt() -> str:
         "cons": [],
         "caveats": "",
         "trust_notes": "",
+        "plan_entry_mode": "estimated",
+        "pricing_packages": [
+            {
+                "id": "",
+                "name": "",
+                "price_per_gb_usd": "",
+                "ram_min_gb": "",
+                "ram_max_gb": "",
+                "sample_ram_gb": [],
+                "plan_url": "",
+                "storage_gb": "",
+                "storage_type": "",
+                "panel": "",
+                "ddos_protection": "",
+                "modpack_support": "",
+                "player_slots_per_gb": "",
+                "recommended_players_per_gb": "",
+                "locations": [],
+                "location_tags": [],
+                "support_channels": [],
+                "server_types": [],
+                "support_notes": "",
+                "price_notes": "",
+                "notes": "",
+            }
+        ],
+        "cpu_options": [
+            {
+                "id": "",
+                "label": "",
+                "package_id": "",
+                "cpu_model": "",
+                "cpu_vendor": "",
+                "cpu_cores": "",
+                "cpu_allocation": "",
+                "advertised_clock_ghz": "",
+                "boost_clock_ghz": "",
+                "memory_speed_mhz": "",
+                "benchmark_score": "",
+                "notes": "",
+            }
+        ],
         "plans": [
             {
                 "name": "",
@@ -456,9 +539,14 @@ def extraction_system_prompt() -> str:
         f"Allowed recommendation_tier values: {TIER_OPTIONS}. "
         f"Allowed status values: {STATUS_OPTIONS}. "
         f"Allowed category_picks values: {CATEGORY_OPTIONS}. "
+        f"Allowed plan_entry_mode values: {PLAN_ENTRY_MODE_OPTIONS}. "
         f"Risk tags {HOST_TAG_OPTIONS} must only be used if there is clear evidence in the context. "
-        "Each real purchasable plan/tier must be a separate item in plans, with its own price, RAM, CPU/specs, "
+        "Use plan_entry_mode exact when the source has clear named purchasable plan rows. "
+        "Each real purchasable plan/tier must then be a separate item in plans, with its own price, RAM, CPU/specs, "
         "locations, support, storage, panel, DDoS, modpack support, URL, and notes when available. "
+        "Use plan_entry_mode estimated when the source describes package families, CPU families, custom sliders, "
+        "or broad pricing such as dollars per GB. Put package-level prices/features in pricing_packages and "
+        "CPU/hardware choices in cpu_options. A cpu_options package_id should match the related package name or id. "
         "Use USD numeric prices when clear; otherwise leave the price as written only in price_notes. "
         "Use lowercase short tags and region codes such as us-east or eu-west when possible. "
         "User notes have priority over page text if they conflict. "
@@ -504,6 +592,33 @@ def clean_imported_host(payload: dict[str, Any], source_url: str, sources: list[
         host["hosting_types"] = ["minecraft"]
     host["category_picks"] = [item for item in host["category_picks"] if item in CATEGORY_OPTIONS]
     host["source_urls"] = dedupe([*host["source_urls"], *sources, source_url])
+    mode = str(payload.get("plan_entry_mode", "") or "").strip()
+    host["plan_entry_mode"] = mode if mode in PLAN_ENTRY_MODE_OPTIONS else "estimated"
+
+    pricing_packages: list[dict[str, Any]] = []
+    for item in payload.get("pricing_packages", []):
+        if not isinstance(item, dict):
+            continue
+        package: dict[str, Any] = {}
+        for field in PRICING_PACKAGE_TEXT_FIELDS:
+            package[field] = str(item.get(field, "") or "").strip()
+        for field in PRICING_PACKAGE_LIST_FIELDS:
+            package[field] = normalize_list(item.get(field, []))
+        if any(package.values()) or any(package[field] for field in PRICING_PACKAGE_LIST_FIELDS):
+            pricing_packages.append(package)
+    host["pricing_packages"] = pricing_packages
+
+    cpu_options: list[dict[str, Any]] = []
+    for item in payload.get("cpu_options", []):
+        if not isinstance(item, dict):
+            continue
+        option = {
+            field: str(item.get(field, "") or "").strip()
+            for field in CPU_OPTION_TEXT_FIELDS
+        }
+        if any(option.values()):
+            cpu_options.append(option)
+    host["cpu_options"] = cpu_options
 
     plans: list[dict[str, Any]] = []
     for item in payload.get("plans", []):
@@ -518,6 +633,8 @@ def clean_imported_host(payload: dict[str, Any], source_url: str, sources: list[
         if any(plan.values()) or any(plan[field] for field in PLAN_LIST_FIELDS):
             plans.append(plan)
     host["plans"] = plans
+    if plans and not pricing_packages:
+        host["plan_entry_mode"] = "exact"
     return normalize_host(host)
 
 

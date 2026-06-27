@@ -33,9 +33,11 @@ If automatic Pages configuration fails, open the GitHub repo settings and choose
 
 ## Data model
 
-Rankings are manual. Each host has hosting type selectors, a tier, drag-saved rank, category picks, tags, location tags, CPU/GHz/memory/benchmark fields, structured plan rows, support channels, hosting feature notes, source URLs, status, and trust notes. Built-in host tags include `scam` and `dangerous` for risk labeling.
+Rankings are manual. Each host has hosting type selectors, a tier, drag-saved rank, category picks, tags, location tags, CPU/GHz/memory/benchmark fields, support channels, hosting feature notes, source URLs, status, and trust notes. Built-in host tags include `scam` and `dangerous` for risk labeling.
 
-Plan rows support separate public offers with:
+Hosts can use either exact published plans or rough pricing estimates. Rough mode stores named pricing packages such as `Budget` or `Premium Ryzen`, each with its own `$ / GB`, RAM range, regions, support, and features. CPU options attach to those packages, and the public site generates clearly labelled estimated comparison rows.
+
+Exact plan rows support separate public offers with:
 
 - plan name
 - monthly USD price

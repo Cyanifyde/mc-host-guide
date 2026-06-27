@@ -20,6 +20,9 @@ TIER_LABELS = {
 }
 TIER_ORDER = {tier: index for index, tier in enumerate(TIER_OPTIONS)}
 
+PLAN_ENTRY_MODE_OPTIONS = ["estimated", "exact"]
+DEFAULT_RAM_SAMPLES = [1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 256]
+
 CATEGORY_OPTIONS = [
     "overall",
     "budget",
@@ -144,8 +147,13 @@ DEFAULT_HOST: dict[str, Any] = {
     "caveats": "",
     "plans": [],
     "hardware_tiers": [],
+    "plan_entry_mode": "estimated",
+    "pricing_packages": [],
+    "cpu_options": [],
     "public_offers": [],
     "plan_count": 0,
+    "pricing_package_count": 0,
+    "cpu_option_count": 0,
     "hardware_tier_count": 0,
     "tier_option_count": 0,
     "starting_price_usd": "",
@@ -225,6 +233,47 @@ HARDWARE_TIER_LIST_FIELDS = [
     "source_urls",
 ]
 
+PRICING_PACKAGE_TEXT_FIELDS = [
+    "id",
+    "name",
+    "price_per_gb_usd",
+    "ram_min_gb",
+    "ram_max_gb",
+    "plan_url",
+    "storage_gb",
+    "storage_type",
+    "panel",
+    "ddos_protection",
+    "modpack_support",
+    "player_slots_per_gb",
+    "recommended_players_per_gb",
+    "support_notes",
+    "price_notes",
+    "notes",
+]
+PRICING_PACKAGE_LIST_FIELDS = [
+    "sample_ram_gb",
+    "locations",
+    "location_tags",
+    "support_channels",
+    "server_types",
+]
+
+CPU_OPTION_TEXT_FIELDS = [
+    "id",
+    "label",
+    "package_id",
+    "cpu_model",
+    "cpu_vendor",
+    "cpu_cores",
+    "cpu_allocation",
+    "advertised_clock_ghz",
+    "boost_clock_ghz",
+    "memory_speed_mhz",
+    "benchmark_score",
+    "notes",
+]
+
 
 def ensure_data_file() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -272,6 +321,15 @@ def normalize_host(host: dict[str, Any]) -> dict[str, Any]:
     clean["support_channels"] = sorted({tag.lower() for tag in clean["support_channels"]})
     clean["plans"] = normalize_plans(host.get("plans", []))
     clean["hardware_tiers"] = normalize_hardware_tiers(host.get("hardware_tiers", []))
+    clean["pricing_packages"] = normalize_pricing_packages(host.get("pricing_packages", []))
+    clean["cpu_options"] = normalize_cpu_options(host.get("cpu_options", []), clean["pricing_packages"])
+    raw_mode = str(host.get("plan_entry_mode", "") or "").strip()
+    if raw_mode in PLAN_ENTRY_MODE_OPTIONS:
+        clean["plan_entry_mode"] = raw_mode
+    elif clean["plans"] or clean["hardware_tiers"]:
+        clean["plan_entry_mode"] = "exact"
+    else:
+        clean["plan_entry_mode"] = "estimated"
     merge_nested_location_tags(clean)
     clean["public_offers"] = build_public_offers(clean)
     apply_plan_summary(clean)
@@ -356,6 +414,77 @@ def normalize_hardware_tiers(value: Any) -> list[dict[str, Any]]:
     return tiers
 
 
+def normalize_sample_ram(value: Any) -> list[str]:
+    numbers = [numeric_value(item) for item in normalize_list(value)]
+    clean = sorted({number for number in numbers if number is not None and number > 0})
+    return [format_metric(number) for number in clean]
+
+
+def normalize_pricing_packages(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+
+    packages: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    for index, item in enumerate(value, start=1):
+        if not isinstance(item, dict):
+            continue
+        package = {
+            field: str(item.get(field, "") or "").strip()
+            for field in PRICING_PACKAGE_TEXT_FIELDS
+        }
+        for field in PRICING_PACKAGE_LIST_FIELDS:
+            package[field] = normalize_list(item.get(field, []))
+        package["sample_ram_gb"] = normalize_sample_ram(package["sample_ram_gb"])
+        package["location_tags"] = sorted({tag.lower() for tag in package["location_tags"]})
+        package["support_channels"] = sorted({channel.lower() for channel in package["support_channels"]})
+        if not any(package[field] for field in PRICING_PACKAGE_TEXT_FIELDS if field != "id") and not any(
+            package[field] for field in PRICING_PACKAGE_LIST_FIELDS
+        ):
+            continue
+
+        base_id = package.get("id") or package.get("name") or f"package-{index}"
+        package_id = unique_slug(base_id, seen_ids)
+        seen_ids.add(package_id)
+        package["id"] = package_id
+        if not package["name"]:
+            package["name"] = f"Package {index}"
+        packages.append(package)
+    return packages
+
+
+def normalize_cpu_options(value: Any, pricing_packages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+
+    package_lookup: dict[str, str] = {}
+    for package in pricing_packages:
+        package_lookup[package["id"]] = package["id"]
+        package_lookup[slugify(package.get("name", ""))] = package["id"]
+    default_package_id = pricing_packages[0]["id"] if pricing_packages else ""
+    options: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    for index, item in enumerate(value, start=1):
+        if not isinstance(item, dict):
+            continue
+        option = {
+            field: str(item.get(field, "") or "").strip()
+            for field in CPU_OPTION_TEXT_FIELDS
+        }
+        if not any(option[field] for field in CPU_OPTION_TEXT_FIELDS if field != "id"):
+            continue
+        requested_package = slugify(option.get("package_id", ""))
+        option["package_id"] = package_lookup.get(requested_package, default_package_id)
+        base_id = option.get("id") or option.get("label") or option.get("cpu_model") or f"cpu-{index}"
+        option_id = unique_slug(base_id, seen_ids)
+        seen_ids.add(option_id)
+        option["id"] = option_id
+        if not option["label"]:
+            option["label"] = option.get("cpu_model") or f"CPU option {index}"
+        options.append(option)
+    return options
+
+
 def merge_nested_location_tags(host: dict[str, Any]) -> None:
     tags = set(host.get("location_tags", []))
     locations = set(host.get("locations", []))
@@ -364,6 +493,9 @@ def merge_nested_location_tags(host: dict[str, Any]) -> None:
         locations.update(tier.get("locations", []))
     for plan in host.get("plans", []):
         tags.update(plan.get("location_tags", []))
+    for package in host.get("pricing_packages", []):
+        tags.update(package.get("location_tags", []))
+        locations.update(package.get("locations", []))
     host["location_tags"] = sorted({tag.lower() for tag in tags if tag})
     host["locations"] = sorted({location for location in locations if location})
 
@@ -532,6 +664,140 @@ def offer_field(plan: dict[str, Any], tier: dict[str, Any], host: dict[str, Any]
 
 
 def build_public_offers(host: dict[str, Any]) -> list[dict[str, Any]]:
+    if host.get("plan_entry_mode") == "estimated":
+        return build_estimated_public_offers(host)
+    return build_exact_public_offers(host)
+
+
+def package_ram_samples(package: dict[str, Any]) -> list[float]:
+    explicit = [numeric_value(item) for item in package.get("sample_ram_gb", [])]
+    explicit = [value for value in explicit if value is not None and value > 0]
+    min_ram = numeric_value(package.get("ram_min_gb"))
+    max_ram = numeric_value(package.get("ram_max_gb"))
+
+    if explicit:
+        samples = explicit
+    elif min_ram is not None or max_ram is not None:
+        low = min_ram if min_ram is not None else 1
+        high = max_ram if max_ram is not None else low
+        samples = [value for value in DEFAULT_RAM_SAMPLES if low <= value <= high]
+    else:
+        return []
+
+    if min_ram is not None:
+        samples.append(min_ram)
+    if max_ram is not None:
+        samples.append(max_ram)
+    if min_ram is not None:
+        samples = [value for value in samples if value >= min_ram]
+    if max_ram is not None:
+        samples = [value for value in samples if value <= max_ram]
+    return sorted({value for value in samples if value > 0})
+
+
+def estimated_cpu_options_for_package(host: dict[str, Any], package_id: str) -> list[dict[str, Any]]:
+    options = [
+        option for option in host.get("cpu_options", []) if option.get("package_id") == package_id
+    ]
+    if options:
+        return options
+    return [
+        {
+            "id": "host-cpu",
+            "label": host.get("cpu_model", "") or "Listed CPU",
+            "package_id": package_id,
+            "cpu_model": host.get("cpu_model", ""),
+            "cpu_vendor": host.get("cpu_vendor", ""),
+            "cpu_cores": "",
+            "cpu_allocation": "",
+            "advertised_clock_ghz": host.get("advertised_clock_ghz", ""),
+            "boost_clock_ghz": host.get("boost_clock_ghz", ""),
+            "memory_speed_mhz": host.get("memory_speed_mhz", ""),
+            "benchmark_score": host.get("benchmark_score", ""),
+            "notes": host.get("cpu_notes", ""),
+        }
+    ]
+
+
+def estimated_count(value: Any, ram: float) -> str:
+    per_gb = numeric_value(value)
+    if per_gb is None:
+        return ""
+    return format_metric(per_gb * ram)
+
+
+def build_estimated_public_offers(host: dict[str, Any]) -> list[dict[str, Any]]:
+    offers: list[dict[str, Any]] = []
+    for package_index, package in enumerate(host.get("pricing_packages", []), start=1):
+        samples = package_ram_samples(package)
+        if not samples:
+            continue
+
+        price_per_gb = numeric_value(package.get("price_per_gb_usd"))
+        package_name = offer_metric(package, "name") or f"Package {package_index}"
+        location_tags = sorted(set(package.get("location_tags", []) or host.get("location_tags", [])))
+        locations = sorted(set(package.get("locations", []) or host.get("locations", [])))
+        support_channels = sorted(
+            set(package.get("support_channels", []) or host.get("support_channels", []))
+        )
+        server_types = sorted(set(package.get("server_types", []) or host.get("server_types", [])))
+
+        for cpu in estimated_cpu_options_for_package(host, package["id"]):
+            cpu_label = offer_metric(cpu, "label") or offer_metric(cpu, "cpu_model") or "CPU option"
+            for ram in samples:
+                price = format_metric(price_per_gb * ram) if price_per_gb is not None else ""
+                ram_label = format_metric(ram)
+                offers.append(
+                    {
+                        "id": f"est-{package_index}-{cpu['id']}-{ram_label.replace('.', '-')}",
+                        "planName": package_name,
+                        "hardwareName": cpu_label,
+                        "label": f"{package_name} / {cpu_label} / {ram_label} GB",
+                        "price": price,
+                        "planRam": ram_label,
+                        "players": estimated_count(package.get("player_slots_per_gb"), ram),
+                        "recommendedPlayers": estimated_count(
+                            package.get("recommended_players_per_gb"), ram
+                        ),
+                        "storage": offer_metric(package, "storage_gb"),
+                        "pricePerGb": offer_metric(package, "price_per_gb_usd"),
+                        "url": offer_metric(package, "plan_url") or host.get("plan_url", ""),
+                        "notes": offer_metric(package, "notes"),
+                        "cpuModel": offer_metric(cpu, "cpu_model") or host.get("cpu_model", ""),
+                        "cpuVendor": offer_metric(cpu, "cpu_vendor") or host.get("cpu_vendor", ""),
+                        "baseGhz": offer_metric(cpu, "advertised_clock_ghz")
+                        or host.get("advertised_clock_ghz", ""),
+                        "peakGhz": offer_metric(cpu, "boost_clock_ghz")
+                        or host.get("boost_clock_ghz", ""),
+                        "cores": offer_metric(cpu, "cpu_cores"),
+                        "cpuAllocation": offer_metric(cpu, "cpu_allocation"),
+                        "maxMemory": offer_metric(package, "ram_max_gb") or ram_label,
+                        "memorySpeed": offer_metric(cpu, "memory_speed_mhz")
+                        or host.get("memory_speed_mhz", ""),
+                        "benchmark": offer_metric(cpu, "benchmark_score")
+                        or host.get("benchmark_score", ""),
+                        "storageType": offer_metric(package, "storage_type")
+                        or host.get("storage_type", ""),
+                        "locations": locations,
+                        "locationTags": location_tags,
+                        "panel": offer_metric(package, "panel") or host.get("panel", ""),
+                        "ddosProtection": offer_metric(package, "ddos_protection")
+                        or host.get("ddos_protection", ""),
+                        "modpackSupport": offer_metric(package, "modpack_support")
+                        or host.get("modpack_support", ""),
+                        "supportChannels": support_channels,
+                        "serverTypes": server_types,
+                        "supportNotes": offer_metric(package, "support_notes")
+                        or host.get("support_notes", ""),
+                        "priceNotes": offer_metric(package, "price_notes") or host.get("price_notes", ""),
+                        "hardwareNotes": offer_metric(cpu, "notes"),
+                        "estimated": True,
+                    }
+                )
+    return offers
+
+
+def build_exact_public_offers(host: dict[str, Any]) -> list[dict[str, Any]]:
     plans = host.get("plans") or [{}]
     hardware_tiers = host.get("hardware_tiers") or [legacy_hardware_tier(host)]
     hardware_by_id = {tier["id"]: tier for tier in hardware_tiers}
@@ -611,6 +877,7 @@ def build_public_offers(host: dict[str, Any]) -> list[dict[str, Any]]:
                     "supportNotes": offer_field(plan, tier, host, "support_notes"),
                     "priceNotes": offer_field(plan, tier, host, "price_notes"),
                     "hardwareNotes": offer_metric(tier, "notes"),
+                    "estimated": False,
                 }
             )
     return offers
@@ -646,6 +913,8 @@ def apply_plan_summary(host: dict[str, Any]) -> None:
     ]
 
     host["plan_count"] = len(host["plans"])
+    host["pricing_package_count"] = len(host.get("pricing_packages", []))
+    host["cpu_option_count"] = len(host.get("cpu_options", []))
     host["hardware_tier_count"] = len(host.get("hardware_tiers", []))
     host["tier_option_count"] = len(offers)
     host["starting_price_usd"] = format_metric(min(prices) if prices else None)
@@ -743,6 +1012,8 @@ def all_support_channels(hosts: list[dict[str, Any]]) -> list[str]:
             tags.update(plan.get("support_channels", []))
         for tier in host.get("hardware_tiers", []):
             tags.update(tier.get("support_channels", []))
+        for package in host.get("pricing_packages", []):
+            tags.update(package.get("support_channels", []))
         for offer in host.get("public_offers", []):
             tags.update(offer.get("supportChannels", []))
     return sorted(tags)
